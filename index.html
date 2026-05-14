@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RPG Sandbox — Bac à sable de test</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0A0F;
+      --surface: #12121A;
+      --surface2: #1A1A26;
+      --border: rgba(120,120,200,0.2);
+      --border-active: rgba(120,120,200,0.6);
+      --text: #E0E0F0;
+      --text-muted: #8080A0;
+      --text-hint: #404060;
+      --accent: #6060FF;
+      --accent2: #40C0FF;
+      --success: #40D080;
+      --warning: #FFB040;
+      --danger: #FF4060;
+      --gold: #FFD060;
+    }
+
+    html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
+
+    body { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    .header {
+      grid-column: 1 / -1;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
+    .header-sub { font-size: 12px; color: var(--text-muted); }
+    .api-row { display: flex; gap: 8px; align-items: center; }
+    .api-input { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; width: 260px; }
+    .api-input:focus { outline: none; border-color: var(--accent); }
+    .api-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+    .api-btn:hover { background: #7070FF; }
+    .api-status { font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+    .api-status.ok { color: var(--success); }
+    .api-status.err { color: var(--danger); }
+
+    /* ── FICHE PERSONNAGE (gauche) ── */
+    .sheet-panel {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .sheet-section { display: flex; flex-direction: column; gap: 6px; }
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 700;
+      color: var(--accent2); letter-spacing: 2px;
+      text-transform: uppercase;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Identité */
+    .identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .id-field { display: flex; flex-direction: column; gap: 2px; }
+    .id-label { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
+    .id-input { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; width: 100%; }
+    .id-input:focus { outline: none; border-color: var(--accent); }
+    .id-input.wide { grid-column: 1 / -1; }
+
+    /* Ressources */
+    .resource-list { display: flex; flex-direction: column; gap: 6px; }
+    .resource-row { display: flex; align-items: center; gap: 8px; }
+    .res-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); width: 30px; }
+    .res-bar-bg { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .res-bar { height: 100%; border-radius: 4px; transition: width 0.4s, background 0.4s; }
+    .bar-pv { background: var(--danger); }
+    .bar-pf { background: var(--warning); }
+    .bar-pm { background: var(--accent); }
+    .bar-chance { background: var(--gold); }
+    .res-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text); min-width: 70px; text-align: right; }
+    .res-edit { display: flex; gap: 4px; margin-top: 2px; }
+    .res-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; width: 70px; }
+    .res-num:focus { outline: none; border-color: var(--accent); }
+
+    /* Attributs */
+    .attrs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+    .attr-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; }
+    .attr-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+    .attr-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent2); cursor: pointer; min-width: 20px; text-align: right; }
+    .attr-val:hover { color: white; }
+
+    /* Compétences */
+    .comp-filter { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+    .comp-cat-btn { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .comp-cat-btn.active { border-color: var(--accent); color: var(--accent2); background: rgba(96,96,255,0.1); }
+    .comp-list { display: flex; flex-direction: column; gap: 3px; max-height: 280px; overflow-y: auto; }
+    .comp-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 3px; border: 1px solid transparent; cursor: pointer; transition: all 0.1s; }
+    .comp-row:hover { background: var(--surface2); border-color: var(--border); }
+    .comp-row.changed { border-color: var(--success); background: rgba(64,208,128,0.05); }
+    .comp-name { flex: 1; font-size: 11px; color: var(--text-muted); }
+    .comp-name.acquired { color: var(--text); }
+    .comp-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-hint); min-width: 28px; text-align: right; }
+    .comp-val.low { color: var(--text-muted); }
+    .comp-val.med { color: var(--accent2); }
+    .comp-val.high { color: var(--gold); }
+    .comp-val.max { color: var(--danger); }
+    .comp-bar { width: 40px; height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .comp-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* ── ZONE TEST (droite) ── */
+    .test-panel { display: flex; flex-direction: column; overflow: hidden; }
+
+    .test-toolbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toolbar-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+    .mode-select { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+    .clear-btn { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; cursor: pointer; margin-left: auto; }
+    .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Log de test */
+    .test-log {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .log-entry { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .log-action { background: var(--surface2); padding: 8px 12px; font-size: 12px; color: var(--accent2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .log-time { font-size: 10px; color: var(--text-hint); }
+    .log-response { padding: 10px 12px; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+    .log-changes { padding: 8px 12px; background: rgba(64,208,128,0.05); border-top: 1px solid rgba(64,208,128,0.2); display: flex; flex-wrap: wrap; gap: 6px; }
+    .change-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    }
+    .badge-up { background: rgba(64,208,128,0.15); color: var(--success); border: 1px solid rgba(64,208,128,0.3); }
+    .badge-down { background: rgba(255,64,96,0.15); color: var(--danger); border: 1px solid rgba(255,64,96,0.3); }
+    .badge-new { background: rgba(96,96,255,0.15); color: var(--accent2); border: 1px solid rgba(96,96,255,0.3); }
+    .badge-neutral { background: rgba(128,128,160,0.1); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .log-loading { padding: 10px 12px; color: var(--text-hint); font-size: 12px; }
+    .dots span { animation: blink 1s infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,60%,100%{opacity:0.2} 30%{opacity:1} }
+
+    /* Input zone */
+    .input-zone {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .input-row { display: flex; gap: 8px; }
+    .action-input { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+    .action-input:focus { outline: none; border-color: var(--accent); }
+    .action-input::placeholder { color: var(--text-hint); }
+    .send-btn { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: var(--accent); color: white; border: none; border-radius: 6px; padding: 10px 18px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+    .send-btn:hover { background: #7070FF; }
+    .send-btn:disabled { opacity: 0.4; cursor: default; }
+    .input-hint { font-size: 10px; color: var(--text-hint); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+    .hidden { display: none; }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div>
+    <div class="header-title">RPG SANDBOX</div>
+    <div class="header-sub">Bac à sable de test — cohérence mécanique</div>
+  </div>
+  <div class="api-row">
+    <input id="api-input" class="api-input" type="password" placeholder="sk-ant-api03-..." />
+    <button class="api-btn" onclick="saveApiKey()">Connecter</button>
+    <span class="api-status" id="api-status">○ Non connecté</span>
+  </div>
+</header>
+
+<!-- FICHE PERSONNAGE -->
+<aside class="sheet-panel">
+
+  <!-- Identité -->
+  <div class="sheet-section">
+    <div class="section-title">Identité</div>
+    <div class="identity-grid">
+      <div class="id-field id-input wide">
+        <div class="id-label">NOM</div>
+        <input class="id-input" id="pc-nom" type="text" value="Personnage Test" />
+      </div>
+      <div class="id-field">
+        <div class="id-label">CLASSE</div>
+        <input class="id-input" id="pc-classe" type="text" value="Aventurier" />
+      </div>
+      <div class="id-field">
+        <div class="id-label">ÂGE</div>
+        <input class="id-input" id="pc-age" type="number" value="17" min="1" max="100" />
+      </div>
+      <div class="id-field">
+        <div class="id-label">TALENT</div>
+        <select class="id-input" id="pc-talent">
+          <option value="Normal ×1.0">Normal ×1.0</option>
+          <option value="Doué ×1.5">Doué ×1.5</option>
+          <option value="Très doué ×2.0">Très doué ×2.0</option>
+          <option value="Prodige ×2.5" selected>Prodige ×2.5</option>
+          <option value="Légende ×3.0">Légende ×3.0</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ressources -->
+  <div class="sheet-section">
+    <div class="section-title">Ressources</div>
+    <div class="resource-list">
+      <div class="resource-row">
+        <span class="res-label">PV</span>
+        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pv" id="bar-pv" style="width:100%"></div></div>
+        <span class="res-val" id="val-pv">650/650</span>
+      </div>
+      <div class="res-edit">
+        <input class="res-num" id="pv-cur" type="number" value="650" onchange="updateRes('pv')" />
+        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
+        <input class="res-num" id="pv-max" type="number" value="650" onchange="updateRes('pv')" />
+      </div>
+      <div class="resource-row">
+        <span class="res-label">PF</span>
+        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pf" id="bar-pf" style="width:100%"></div></div>
+        <span class="res-val" id="val-pf">600/600</span>
+      </div>
+      <div class="res-edit">
+        <input class="res-num" id="pf-cur" type="number" value="600" onchange="updateRes('pf')" />
+        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
+        <input class="res-num" id="pf-max" type="number" value="600" onchange="updateRes('pf')" />
+      </div>
+      <div class="resource-row">
+        <span class="res-label">PM</span>
+        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pm" id="bar-pm" style="width:100%"></div></div>
+        <span class="res-val" id="val-pm">50/50</span>
+      </div>
+      <div class="res-edit">
+        <input class="res-num" id="pm-cur" type="number" value="50" onchange="updateRes('pm')" />
+        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
+        <input class="res-num" id="pm-max" type="number" value="50" onchange="updateRes('pm')" />
+      </div>
+      <div class="resource-row">
+        <span class="res-label">☆</span>
+        <div class="bar-bg res-bar-bg"><div class="res-bar bar-chance" id="bar-chance" style="width:10%"></div></div>
+        <span class="res-val" id="val-chance">10</span>
+      </div>
+      <div class="res-edit">
+        <input class="res-num" id="chance-val" type="number" value="10" min="0" max="100" onchange="updateChance()" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Attributs -->
+  <div class="sheet-section">
+    <div class="section-title">Attributs <span style="font-size:9px;color:var(--text-hint)">(cliquer pour modifier)</span></div>
+    <div class="attrs-grid" id="attrs-grid">
+      <!-- généré par JS -->
+    </div>
+  </div>
+
+  <!-- Compétences -->
+  <div class="sheet-section">
+    <div class="section-title">Compétences</div>
+    <div class="comp-filter" id="comp-filter">
+      <button class="comp-cat-btn active" onclick="filterCat('all', this)">Tout</button>
+      <button class="comp-cat-btn" onclick="filterCat('⚔ Combat', this)">⚔</button>
+      <button class="comp-cat-btn" onclick="filterCat('🏃 Mouvement', this)">🏃</button>
+      <button class="comp-cat-btn" onclick="filterCat('🔮 Magie', this)">🔮</button>
+      <button class="comp-cat-btn" onclick="filterCat('💬 Social', this)">💬</button>
+      <button class="comp-cat-btn" onclick="filterCat('👁 Perception', this)">👁</button>
+      <button class="comp-cat-btn" onclick="filterCat('🌲 Survie', this)">🌲</button>
+      <button class="comp-cat-btn" onclick="filterCat('📚 Savoir', this)">📚</button>
+      <button class="comp-cat-btn" onclick="filterCat('🛠 Artisanat', this)">🛠</button>
+      <button class="comp-cat-btn" onclick="filterCat('>0', this)">Acquises</button>
+    </div>
+    <div class="comp-list" id="comp-list">
+      <!-- généré par JS -->
+    </div>
+  </div>
+
+</aside>
+
+<!-- ZONE TEST -->
+<main class="test-panel">
+  <div class="test-toolbar">
+    <span class="toolbar-label">MODE</span>
+    <select class="mode-select" id="test-mode">
+      <option value="combat">⚔ Combat</option>
+      <option value="social">💬 Social</option>
+      <option value="exploration">🗺 Exploration</option>
+      <option value="magie">🔮 Magie</option>
+      <option value="libre" selected>🎲 Libre</option>
+    </select>
+    <span class="toolbar-label" style="margin-left:10px;">DÉ</span>
+    <select class="mode-select" id="die-mode">
+      <option value="auto">Auto (aléatoire)</option>
+      <option value="20">Forcer 20 (critique)</option>
+      <option value="1">Forcer 1 (fumble)</option>
+      <option value="10">Forcer 10 (moyen)</option>
+    </select>
+    <button class="clear-btn" onclick="clearLog()">Effacer log</button>
+  </div>
+
+  <div class="test-log" id="test-log">
+    <div style="color:var(--text-hint);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:40px;">
+      Configure le personnage à gauche puis tape une action ci-dessous.<br/>
+      Claude analysera la cohérence mécanique et mettra à jour la fiche.
+    </div>
+  </div>
+
+  <div class="input-zone">
+    <div class="input-row">
+      <input id="action-input" class="action-input" type="text" placeholder="Ex: Je frappe l'ennemi avec mon épée longue / Je tente de persuader le garde / Je lance un sort de feu..." />
+      <button id="send-btn" class="send-btn" onclick="sendAction()">Tester →</button>
+    </div>
+    <div class="input-hint">Signaux détectés automatiquement : HP: PF: PM: PROG: ETAT: CHANCE: — La fiche se met à jour en temps réel</div>
+  </div>
+</main>
+
+<script>
+/* ════════════════════════════════════════
+   DONNÉES PERSONNAGE
+════════════════════════════════════════ */
+let apiKey = '';
+
+const ATTRS_DEF = [
+  { key:'force',        label:'FOR', val:4 },
+  { key:'endurance',    label:'END', val:5 },
+  { key:'agilite',      label:'AGI', val:6 },
+  { key:'dexterite',    label:'DEX', val:5 },
+  { key:'sante',        label:'SAN', val:5 },
+  { key:'perception',   label:'PER', val:7 },
+  { key:'intelligence', label:'INT', val:5 },
+  { key:'volonte',      label:'VOL', val:4 },
+  { key:'charisme',     label:'CHA', val:4 },
+  { key:'mana',         label:'MAN', val:5 },
+];
+
+const AFFINITES_DEF = [
+  { key:'aff_feu',     label:'FEU', val:0 },
+  { key:'aff_eau',     label:'EAU', val:0 },
+  { key:'aff_terre',   label:'TER', val:0 },
+  { key:'aff_vent',    label:'VEN', val:0 },
+  { key:'aff_lumiere', label:'LUM', val:0 },
+  { key:'aff_ombre',   label:'OMB', val:9 },
+];
+
+let pc = {
+  attrs: Object.fromEntries(ATTRS_DEF.map(a => [a.key, a.val])),
+  affs:  Object.fromEntries(AFFINITES_DEF.map(a => [a.key, a.val])),
+  pv: { cur:650, max:650 },
+  pf: { cur:600, max:600 },
+  pm: { cur:50,  max:50 },
+  chance: 10,
+  competences: getDefaultComps(),
+};
+
+function getDefaultComps() {
+  const list = [
+    // Combat
+    {cat:'⚔ Combat', nom:'Combat Épée Longue',     val:0},
+    {cat:'⚔ Combat', nom:'Combat Épée Courte',      val:0},
+    {cat:'⚔ Combat', nom:'Combat Dague',             val:5},
+    {cat:'⚔ Combat', nom:'Combat Mains Nues',        val:8},
+    {cat:'⚔ Combat', nom:'Esquive',                  val:12},
+    {cat:'⚔ Combat', nom:'Parade Arme',              val:0},
+    {cat:'⚔ Combat', nom:'Résistance Physique',      val:5},
+    {cat:'⚔ Combat', nom:'Résistance Douleur',       val:5},
+    {cat:'⚔ Combat', nom:'Endurance Combat',         val:5},
+    {cat:'⚔ Combat', nom:'Feinte',                   val:0},
+    {cat:'⚔ Combat', nom:'Riposte',                  val:0},
+    {cat:'⚔ Combat', nom:'Charge',                   val:0},
+    // Mouvement
+    {cat:'🏃 Mouvement', nom:'Course',               val:15},
+    {cat:'🏃 Mouvement', nom:'Marche',               val:43},
+    {cat:'🏃 Mouvement', nom:'Sprint',               val:8},
+    {cat:'🏃 Mouvement', nom:'Escalade',             val:3},
+    {cat:'🏃 Mouvement', nom:'Acrobatie',            val:1},
+    {cat:'🏃 Mouvement', nom:'Équilibre',            val:6},
+    {cat:'🏃 Mouvement', nom:'Natation',             val:1},
+    // Magie
+    {cat:'🔮 Magie', nom:'Maîtrise Magie',           val:5},
+    {cat:'🔮 Magie', nom:'Maîtrise Ombre',           val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Feu',             val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Eau',             val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Terre',           val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Vent',            val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Lumière',         val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Lave',            val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Glace',           val:0},
+    {cat:'🔮 Magie', nom:'Maîtrise Foudre',          val:0},
+    // Social
+    {cat:'💬 Social', nom:'Persuasion',              val:3},
+    {cat:'💬 Social', nom:'Intimidation',            val:5},
+    {cat:'💬 Social', nom:'Tromperie',               val:8},
+    {cat:'💬 Social', nom:'Marchandage',             val:2},
+    {cat:'💬 Social', nom:'Leadership',              val:0},
+    {cat:'💬 Social', nom:'Séduction',               val:0},
+    // Perception
+    {cat:'👁 Perception', nom:'Vigilance',           val:15},
+    {cat:'👁 Perception', nom:'Observation',         val:12},
+    {cat:'👁 Perception', nom:'Pistage',             val:3},
+    {cat:'👁 Perception', nom:'Investigation',       val:5},
+    {cat:'👁 Perception', nom:'Détection Magie',     val:8},
+    {cat:'👁 Perception', nom:'Sixième Sens',        val:0},
+    // Survie
+    {cat:'🌲 Survie', nom:'Survie Nature',           val:5},
+    {cat:'🌲 Survie', nom:'Orientation',             val:3},
+    {cat:'🌲 Survie', nom:'Premiers Soins',          val:3},
+    {cat:'🌲 Survie', nom:'Résistance Fatigue',      val:5},
+    {cat:'🌲 Survie', nom:'Camouflage',              val:0},
+    // Savoir
+    {cat:'📚 Savoir', nom:'Langue Maternelle',       val:85},
+    {cat:'📚 Savoir', nom:'Histoire',                val:4},
+    {cat:'📚 Savoir', nom:'Médecine',                val:0},
+    {cat:'📚 Savoir', nom:'Mathématiques',           val:4},
+    // Artisanat
+    {cat:'🛠 Artisanat', nom:'Cuisine',              val:5},
+    {cat:'🛠 Artisanat', nom:'Forge',                val:0},
+    {cat:'🛠 Artisanat', nom:'Alchimie',             val:0},
+  ];
+  return list;
+}
+
+/* ════════════════════════════════════════
+   INIT UI
+════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('rpg_api_key');
+  if (saved) { apiKey = saved; document.getElementById('api-input').value = saved; setApiStatus('ok'); }
+  renderAttrs();
+  renderComps('all');
+  document.getElementById('action-input').addEventListener('keydown', e => { if(e.key==='Enter') sendAction(); });
+  document.getElementById('api-input').addEventListener('keydown', e => { if(e.key==='Enter') saveApiKey(); });
+});
+
+function saveApiKey() {
+  const val = document.getElementById('api-input').value.trim();
+  if (!val.startsWith('sk-ant-')) { setApiStatus('err'); return; }
+  apiKey = val; localStorage.setItem('rpg_api_key', val); setApiStatus('ok');
+}
+function setApiStatus(s) {
+  const el = document.getElementById('api-status');
+  el.className = 'api-status ' + s;
+  el.textContent = s === 'ok' ? '✓ Connecté' : '✗ Clé invalide';
+}
+
+/* ── Attributs ── */
+function renderAttrs() {
+  const grid = document.getElementById('attrs-grid');
+  grid.innerHTML = '';
+  [...ATTRS_DEF, ...AFFINITES_DEF].forEach(a => {
+    const key = a.key;
+    const val = key.startsWith('aff_') ? pc.affs[key] : pc.attrs[key];
+    const row = document.createElement('div');
+    row.className = 'attr-row';
+    row.innerHTML = `<span class="attr-name">${a.label}</span><span class="attr-val" id="av-${key}" onclick="editAttr('${key}')">${val}</span>`;
+    grid.appendChild(row);
+  });
+}
+
+function editAttr(key) {
+  const el = document.getElementById('av-' + key);
+  const cur = key.startsWith('aff_') ? pc.affs[key] : pc.attrs[key];
+  const newVal = prompt(`${key.toUpperCase()} (actuel: ${cur}) — nouvelle valeur (1-10):`, cur);
+  if (newVal === null) return;
+  const v = Math.max(0, Math.min(10, parseInt(newVal) || cur));
+  if (key.startsWith('aff_')) pc.affs[key] = v;
+  else pc.attrs[key] = v;
+  el.textContent = v;
+}
+
+/* ── Compétences ── */
+let currentCat = 'all';
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.comp-cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderComps(cat);
+}
+
+function renderComps(cat) {
+  const list = document.getElementById('comp-list');
+  list.innerHTML = '';
+  let filtered = pc.competences;
+  if (cat === '>0') filtered = filtered.filter(c => c.val > 0);
+  else if (cat !== 'all') filtered = filtered.filter(c => c.cat === cat);
+
+  filtered.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'comp-row' + (c.val > 0 ? '' : '');
+    row.id = 'cr-' + esc(c.nom);
+
+    let valClass = 'comp-val';
+    if (c.val === 0) valClass += ' low';
+    else if (c.val < 30) valClass += ' low';
+    else if (c.val < 60) valClass += ' med';
+    else if (c.val < 90) valClass += ' high';
+    else valClass += ' max';
+
+    const barColor = c.val === 0 ? 'var(--text-hint)' : c.val < 30 ? 'var(--text-muted)' : c.val < 60 ? 'var(--accent2)' : c.val < 90 ? 'var(--gold)' : 'var(--danger)';
+
+    row.innerHTML = `
+      <span class="comp-name ${c.val > 0 ? 'acquired' : ''}">${esc(c.nom)}</span>
+      <div class="comp-bar"><div class="comp-bar-fill" style="width:${c.val}%;background:${barColor}"></div></div>
+      <span class="${valClass}" onclick="editComp('${esc(c.nom)}')" style="cursor:pointer">${c.val}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function editComp(nom) {
+  const c = pc.competences.find(x => x.nom === nom);
+  if (!c) return;
+  const newVal = prompt(`${nom} (actuel: ${c.val}) — nouvelle valeur (0-100):`, c.val);
+  if (newVal === null) return;
+  const v = Math.max(0, Math.min(100, parseInt(newVal) || c.val));
+  c.val = v;
+  renderComps(currentCat);
+}
+
+/* ── Ressources ── */
+function updateRes(type) {
+  const cur = parseInt(document.getElementById(`${type}-cur`).value) || 0;
+  const max = parseInt(document.getElementById(`${type}-max`).value) || 1;
+  pc[type] = { cur: Math.min(cur, max), max };
+  const pct = Math.max(0, Math.min(100, (pc[type].cur / pc[type].max) * 100));
+  document.getElementById(`bar-${type}`).style.width = pct + '%';
+  document.getElementById(`val-${type}`).textContent = `${pc[type].cur}/${pc[type].max}`;
+}
+function updateChance() {
+  pc.chance = Math.max(0, Math.min(100, parseInt(document.getElementById('chance-val').value) || 0));
+  document.getElementById('bar-chance').style.width = pc.chance + '%';
+  document.getElementById('val-chance').textContent = pc.chance;
+}
+
+/* ════════════════════════════════════════
+   SYSTEM PROMPT (test mécanique pur)
+════════════════════════════════════════ */
+function buildSystemPrompt() {
+  const attrs = [...ATTRS_DEF, ...AFFINITES_DEF].map(a => {
+    const v = a.key.startsWith('aff_') ? pc.affs[a.key] : pc.attrs[a.key];
+    return `${a.label}:${v}`;
+  }).join(' ');
+
+  const compsAcquises = pc.competences.filter(c => c.val > 0).map(c => `${c.nom} ${c.val}`).join(' | ');
+
+  return `Tu es un moteur de règles JDR en mode TEST MÉCANIQUE PUR.
+Tu analyses la cohérence des actions par rapport aux stats du personnage.
+PAS de narration, PAS d'histoire — uniquement l'analyse mécanique et les conséquences sur la fiche.
+
+PERSONNAGE :
+Nom: ${document.getElementById('pc-nom').value} | Classe: ${document.getElementById('pc-classe').value} | Âge: ${document.getElementById('pc-age').value}ans | Talent: ${document.getElementById('pc-talent').value}
+PV: ${pc.pv.cur}/${pc.pv.max} | PF: ${pc.pf.cur}/${pc.pf.max} | PM: ${pc.pm.cur}/${pc.pm.max} | Chance: ${pc.chance}
+Attributs: ${attrs}
+Compétences acquises: ${compsAcquises || 'aucune'}
+
+RÉFÉRENTIEL NARRATIF RAPIDE :
+- Attributs 1-10 : 5=humain ordinaire | 7=au-dessus de la moyenne | 9=exceptionnel | 10=max humain
+- Affinités 0-10 : 0=aucun sort possible | 3-4=sorts mineurs | 7-8=mage compétent | 10=maître
+- Compétences 0-100 : 0=jamais pratiqué | 20=apprenti | 40=soldat formé | 60=expert | 80=maître
+- PF coûts : marcher 1h=5PF | combat 5min=80-120PF | sort rang3=15-30PM
+- Maîtrise Ombre 0 → AUCUN sort d'ombre possible, même dans un lieu magique
+
+FORMAT DE RÉPONSE STRICT :
+1. ANALYSE: [1-2 phrases — ce que les stats permettent ou interdisent]
+2. RÉSULTAT: [Succès/Échec Partiel/Échec + raison mécanique]
+3. CONSÉQUENCES: [Signaux stats uniquement]
+
+SIGNAUX STATS (utilise EXACTEMENT ce format) :
+HP:-X ou HP:+X | PF:-X ou PF:+X | PM:-X ou PM:+X
+PROG:NomExact:+X (X=0.5 à 2.0 selon difficulté)
+ETAT:nom | CHANCE:+X
+
+RÈGLE ABSOLUE : Si une compétence est à 0 et que l'action la nécessite, signaler l'impossibilité ou la difficulté extrême.
+Ne jamais donner de capacités qui dépassent les stats actuelles.
+Réponds en français, court et factuel.`;
+}
+
+/* ════════════════════════════════════════
+   SEND ACTION
+════════════════════════════════════════ */
+async function sendAction() {
+  if (!apiKey) { alert('Clé API manquante !'); return; }
+  const input = document.getElementById('action-input');
+  const action = input.value.trim();
+  if (!action) return;
+
+  input.value = '';
+  document.getElementById('send-btn').disabled = true;
+
+  // Dé
+  const dieMode = document.getElementById('die-mode').value;
+  const de20 = dieMode === 'auto' ? Math.floor(Math.random()*20)+1 : parseInt(dieMode);
+  const mode = document.getElementById('test-mode').value;
+
+  // Entrée log
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const time = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  entry.innerHTML = `
+    <div class="log-action">
+      <span>▶ ${esc(action)} <span style="color:var(--text-hint);font-size:10px;">[dé:${de20}][${mode}]</span></span>
+      <span class="log-time">${time}</span>
+    </div>
+    <div class="log-loading"><span class="dots"><span>.</span><span>.</span><span>.</span></span> Analyse en cours</div>`;
+  document.getElementById('test-log').appendChild(entry);
+  document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
+
+  const fullAction = `${action} [DÉ D20: ${de20}${de20===20?' — CRITIQUE':de20===1?' — FUMBLE':''}]`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:500, system: buildSystemPrompt(), messages:[{role:'user',content:fullAction}] })
+    });
+
+    const d = await r.json();
+    const text = d.content?.find(b => b.type==='text')?.text || '';
+
+    // Parser et appliquer les signaux
+    const changes = parseSignals(text);
+
+    // Afficher
+    const loading = entry.querySelector('.log-loading');
+    loading.remove();
+
+    const cleanText = text
+      .replace(/HP:[+-]\d+/gi,'').replace(/PF:[+-]\d+/gi,'').replace(/PM:[+-]\d+/gi,'')
+      .replace(/PROG:[^:\n]+:[+-][0-9.]+/gi,'').replace(/ETAT:\w+/gi,'').replace(/CHANCE:\+\d+/gi,'')
+      .trim();
+
+    entry.innerHTML += `<div class="log-response">${esc(cleanText)}</div>`;
+
+    if (changes.length > 0) {
+      const badgesHtml = changes.map(c => `<span class="change-badge ${c.type}">${c.label}</span>`).join('');
+      entry.innerHTML += `<div class="log-changes">${badgesHtml}</div>`;
+    }
+
+    document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
+
+  } catch(e) {
+    const loading = entry.querySelector('.log-loading');
+    loading.textContent = '✗ Erreur : ' + e.message;
+    loading.style.color = 'var(--danger)';
+  }
+
+  document.getElementById('send-btn').disabled = false;
+  input.focus();
+}
+
+function parseSignals(text) {
+  const changes = [];
+
+  // HP
+  text.replace(/HP:([+-]\d+)/gi, (_, d) => {
+    const v = parseInt(d);
+    pc.pv.cur = Math.max(0, Math.min(pc.pv.max, pc.pv.cur + v));
+    updateBarDisplay('pv');
+    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PV ${v > 0 ? '+' : ''}${v} → ${pc.pv.cur}/${pc.pv.max}` });
+  });
+
+  // PF
+  text.replace(/PF:([+-]\d+)/gi, (_, d) => {
+    const v = parseInt(d);
+    pc.pf.cur = Math.max(0, Math.min(pc.pf.max, pc.pf.cur + v));
+    updateBarDisplay('pf');
+    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PF ${v > 0 ? '+' : ''}${v} → ${pc.pf.cur}/${pc.pf.max}` });
+  });
+
+  // PM
+  text.replace(/PM:([+-]\d+)/gi, (_, d) => {
+    const v = parseInt(d);
+    pc.pm.cur = Math.max(0, Math.min(pc.pm.max, pc.pm.cur + v));
+    updateBarDisplay('pm');
+    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PM ${v > 0 ? '+' : ''}${v} → ${pc.pm.cur}/${pc.pm.max}` });
+  });
+
+  // PROG
+  text.replace(/PROG:([^:\n]+):\+([0-9.]+)/gi, (_, nom, gain) => {
+    const g = parseFloat(gain);
+    const comp = pc.competences.find(c => c.nom.toLowerCase() === nom.trim().toLowerCase());
+    if (comp) {
+      const old = comp.val;
+      comp.val = Math.min(100, Math.round((comp.val + g) * 10) / 10);
+      changes.push({ type: 'badge-new', label: `${nom.trim()} ${old}→${comp.val}` });
+      renderComps(currentCat);
+      // Flash
+      setTimeout(() => {
+        const row = document.getElementById('cr-' + esc(nom.trim()));
+        if (row) { row.classList.add('changed'); setTimeout(() => row.classList.remove('changed'), 3000); }
+      }, 100);
+    } else {
+      changes.push({ type: 'badge-neutral', label: `PROG: ${nom.trim()} introuvable` });
+    }
+  });
+
+  // ETAT
+  text.replace(/ETAT:(\w+)/gi, (_, e) => {
+    changes.push({ type: 'badge-neutral', label: `État: ${e}` });
+  });
+
+  // CHANCE
+  text.replace(/CHANCE:\+(\d+)/gi, (_, v) => {
+    pc.chance = Math.min(100, pc.chance + parseInt(v));
+    document.getElementById('bar-chance').style.width = pc.chance + '%';
+    document.getElementById('val-chance').textContent = pc.chance;
+    changes.push({ type: 'badge-up', label: `Chance +${v} → ${pc.chance}` });
+  });
+
+  return changes;
+}
+
+function updateBarDisplay(type) {
+  const pct = pc[type].max > 0 ? Math.max(0, Math.min(100, (pc[type].cur / pc[type].max) * 100)) : 0;
+  document.getElementById(`bar-${type}`).style.width = pct + '%';
+  document.getElementById(`val-${type}`).textContent = `${pc[type].cur}/${pc[type].max}`;
+  document.getElementById(`${type}-cur`).value = pc[type].cur;
+}
+
+function clearLog() {
+  document.getElementById('test-log').innerHTML = '<div style="color:var(--text-hint);font-family:\'JetBrains Mono\',monospace;font-size:11px;text-align:center;padding:40px;">Log effacé.</div>';
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
