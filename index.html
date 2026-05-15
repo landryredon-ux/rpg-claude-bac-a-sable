@@ -3,745 +3,875 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RPG Sandbox — Bac à sable de test</title>
+  <title>RPG Sandbox v2 — Test Système Systémique</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0A0A0F;
-      --surface: #12121A;
-      --surface2: #1A1A26;
-      --border: rgba(120,120,200,0.2);
-      --border-active: rgba(120,120,200,0.6);
-      --text: #E0E0F0;
-      --text-muted: #8080A0;
-      --text-hint: #404060;
-      --accent: #6060FF;
-      --accent2: #40C0FF;
-      --success: #40D080;
-      --warning: #FFB040;
-      --danger: #FF4060;
-      --gold: #FFD060;
+      --bg: #0A0A0F; --surface: #12121A; --surface2: #1A1A26; --surface3: #20202E;
+      --border: rgba(120,120,200,0.2); --border-hi: rgba(120,120,200,0.5);
+      --text: #E0E0F0; --muted: #8080A0; --hint: #404060;
+      --accent: #6060FF; --accent2: #40C0FF;
+      --success: #40D080; --warning: #FFB040; --danger: #FF4060; --gold: #FFD060;
+      --magic: #A060FF; --physical: #FF8040;
     }
+    html, body { min-height:100vh; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; }
+    body { display:grid; grid-template-rows:48px 1fr; grid-template-columns:360px 1fr; height:100vh; overflow:hidden; }
 
-    html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
+    /* HEADER */
+    .hdr { grid-column:1/-1; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; }
+    .hdr-title { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--accent2); letter-spacing:2px; white-space:nowrap; }
+    .hdr-right { display:flex; align-items:center; gap:8px; }
+    .api-inp { font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:5px 10px; width:240px; }
+    .api-inp:focus { outline:none; border-color:var(--accent); }
+    .btn-sm { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--accent); color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
+    .btn-sm:hover { background:#7070FF; }
+    .api-st { font-size:10px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .api-st.ok { color:var(--success); } .api-st.err { color:var(--danger); }
 
-    body { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+    /* LEFT PANEL */
+    .left { background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; display:flex; flex-direction:column; }
+    .panel-tabs { display:flex; border-bottom:1px solid var(--border); }
+    .tab { flex:1; font-family:'JetBrains Mono',monospace; font-size:10px; padding:8px; text-align:center; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; transition:all 0.15s; letter-spacing:1px; }
+    .tab.active { color:var(--accent2); border-bottom-color:var(--accent2); }
+    .tab-content { display:none; padding:12px; flex:1; }
+    .tab-content.active { display:block; }
 
-    /* ── HEADER ── */
-    .header {
-      grid-column: 1 / -1;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 20px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .header-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
-    .header-sub { font-size: 12px; color: var(--text-muted); }
-    .api-row { display: flex; gap: 8px; align-items: center; }
-    .api-input { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; width: 260px; }
-    .api-input:focus { outline: none; border-color: var(--accent); }
-    .api-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--accent); color: white; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
-    .api-btn:hover { background: #7070FF; }
-    .api-status { font-size: 11px; font-family: 'JetBrains Mono', monospace; }
-    .api-status.ok { color: var(--success); }
-    .api-status.err { color: var(--danger); }
+    /* SECTIONS */
+    .sec { margin-bottom:14px; }
+    .sec-title { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:var(--accent2); letter-spacing:2px; text-transform:uppercase; padding-bottom:5px; border-bottom:1px solid var(--border); margin-bottom:8px; }
 
-    /* ── FICHE PERSONNAGE (gauche) ── */
-    .sheet-panel {
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      overflow-y: auto;
-      padding: 16px;
-      display: flex; flex-direction: column; gap: 12px;
-    }
+    /* ATTRIBUTS GRID */
+    .attrs-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+    .attr-cell { background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:5px; text-align:center; cursor:pointer; transition:border-color 0.15s; }
+    .attr-cell:hover { border-color:var(--accent); }
+    .attr-cell.physical { border-left:2px solid var(--physical); }
+    .attr-cell.mental { border-left:2px solid var(--accent2); }
+    .attr-cell.magic { border-left:2px solid var(--magic); }
+    .attr-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
+    .attr-val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; color:var(--accent2); line-height:1.2; }
+    .attr-cell.changed { animation:flash 0.5s ease; }
+    @keyframes flash { 0%,100%{background:var(--surface2)} 50%{background:rgba(64,208,128,0.2)} }
 
-    .sheet-section { display: flex; flex-direction: column; gap: 6px; }
-    .section-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; font-weight: 700;
-      color: var(--accent2); letter-spacing: 2px;
-      text-transform: uppercase;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--border);
-    }
+    /* RESSOURCES */
+    .res-list { display:flex; flex-direction:column; gap:6px; }
+    .res-row { display:flex; align-items:center; gap:6px; }
+    .res-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); width:28px; }
+    .bar-bg { flex:1; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
+    .bar-fill { height:100%; border-radius:3px; transition:width 0.4s; }
+    .bar-pv { background:var(--danger); } .bar-pf { background:var(--warning); }
+    .bar-pm { background:var(--magic); } .bar-chance { background:var(--gold); }
+    .res-val { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text); min-width:65px; text-align:right; }
+    .res-inputs { display:flex; gap:4px; margin-top:2px; }
+    .res-num { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:3px 5px; width:55px; }
+    .res-num:focus { outline:none; border-color:var(--accent); }
 
-    /* Identité */
-    .identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .id-field { display: flex; flex-direction: column; gap: 2px; }
-    .id-label { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
-    .id-input { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; width: 100%; }
-    .id-input:focus { outline: none; border-color: var(--accent); }
-    .id-input.wide { grid-column: 1 / -1; }
+    /* COMP LIST */
+    .comp-filter { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:6px; }
+    .cf-btn { font-family:'JetBrains Mono',monospace; font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.15s; }
+    .cf-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(96,96,255,0.1); }
+    .comp-list { display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; }
+    .comp-row { display:flex; align-items:center; gap:5px; padding:2px 5px; border-radius:3px; border:1px solid transparent; cursor:pointer; }
+    .comp-row:hover { background:var(--surface2); border-color:var(--border); }
+    .comp-row.changed { border-color:var(--success); background:rgba(64,208,128,0.07); }
+    .comp-name { flex:1; font-size:11px; color:var(--muted); }
+    .comp-name.hi { color:var(--text); }
+    .comp-bar { width:35px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+    .comp-fill { height:100%; border-radius:2px; }
+    .comp-val { font-family:'JetBrains Mono',monospace; font-size:11px; min-width:25px; text-align:right; }
 
-    /* Ressources */
-    .resource-list { display: flex; flex-direction: column; gap: 6px; }
-    .resource-row { display: flex; align-items: center; gap: 8px; }
-    .res-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); width: 30px; }
-    .res-bar-bg { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
-    .res-bar { height: 100%; border-radius: 4px; transition: width 0.4s, background 0.4s; }
-    .bar-pv { background: var(--danger); }
-    .bar-pf { background: var(--warning); }
-    .bar-pm { background: var(--accent); }
-    .bar-chance { background: var(--gold); }
-    .res-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text); min-width: 70px; text-align: right; }
-    .res-edit { display: flex; gap: 4px; margin-top: 2px; }
-    .res-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; width: 70px; }
-    .res-num:focus { outline: none; border-color: var(--accent); }
+    /* BOUCLES SYSTÉMIQUES */
+    .loops-list { display:flex; flex-direction:column; gap:8px; }
+    .loop-card { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; transition:border-color 0.15s; }
+    .loop-card:hover { border-color:var(--accent); }
+    .loop-card.active-loop { border-color:var(--success); background:rgba(64,208,128,0.05); }
+    .loop-title { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:var(--accent2); margin-bottom:4px; }
+    .loop-desc { font-size:11px; color:var(--muted); line-height:1.5; }
+    .loop-test-btn { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--success); background:rgba(64,208,128,0.1); border:1px solid rgba(64,208,128,0.3); border-radius:3px; padding:3px 8px; cursor:pointer; margin-top:6px; display:inline-block; }
+    .loop-test-btn:hover { background:rgba(64,208,128,0.2); }
 
-    /* Attributs */
-    .attrs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
-    .attr-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; }
-    .attr-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
-    .attr-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent2); cursor: pointer; min-width: 20px; text-align: right; }
-    .attr-val:hover { color: white; }
+    /* RIGHT PANEL */
+    .right { display:flex; flex-direction:column; overflow:hidden; }
+    .right-toolbar { background:var(--surface); border-bottom:1px solid var(--border); padding:8px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tb-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
+    .tb-select { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px 8px; cursor:pointer; }
+    .tb-btn { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:4px; padding:4px 8px; cursor:pointer; }
+    .tb-btn:hover { border-color:var(--danger); color:var(--danger); }
+    .tb-btn.preset { border-color:var(--accent); color:var(--accent2); }
+    .tb-btn.preset:hover { background:rgba(96,96,255,0.1); }
 
-    /* Compétences */
-    .comp-filter { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
-    .comp-cat-btn { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
-    .comp-cat-btn.active { border-color: var(--accent); color: var(--accent2); background: rgba(96,96,255,0.1); }
-    .comp-list { display: flex; flex-direction: column; gap: 3px; max-height: 280px; overflow-y: auto; }
-    .comp-row { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 3px; border: 1px solid transparent; cursor: pointer; transition: all 0.1s; }
-    .comp-row:hover { background: var(--surface2); border-color: var(--border); }
-    .comp-row.changed { border-color: var(--success); background: rgba(64,208,128,0.05); }
-    .comp-name { flex: 1; font-size: 11px; color: var(--text-muted); }
-    .comp-name.acquired { color: var(--text); }
-    .comp-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-hint); min-width: 28px; text-align: right; }
-    .comp-val.low { color: var(--text-muted); }
-    .comp-val.med { color: var(--accent2); }
-    .comp-val.high { color: var(--gold); }
-    .comp-val.max { color: var(--danger); }
-    .comp-bar { width: 40px; height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-    .comp-bar-fill { height: 100%; border-radius: 2px; }
-
-    /* ── ZONE TEST (droite) ── */
-    .test-panel { display: flex; flex-direction: column; overflow: hidden; }
-
-    .test-toolbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .toolbar-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
-    .mode-select { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; cursor: pointer; }
-    .clear-btn { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; cursor: pointer; margin-left: auto; }
-    .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
-
-    /* Log de test */
-    .test-log {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex; flex-direction: column; gap: 10px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .log-entry { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .log-action { background: var(--surface2); padding: 8px 12px; font-size: 12px; color: var(--accent2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .log-time { font-size: 10px; color: var(--text-hint); }
-    .log-response { padding: 10px 12px; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
-    .log-changes { padding: 8px 12px; background: rgba(64,208,128,0.05); border-top: 1px solid rgba(64,208,128,0.2); display: flex; flex-wrap: wrap; gap: 6px; }
-    .change-badge {
-      font-size: 10px; padding: 2px 8px; border-radius: 3px;
-      font-family: 'JetBrains Mono', monospace; font-weight: 600;
-    }
-    .badge-up { background: rgba(64,208,128,0.15); color: var(--success); border: 1px solid rgba(64,208,128,0.3); }
-    .badge-down { background: rgba(255,64,96,0.15); color: var(--danger); border: 1px solid rgba(255,64,96,0.3); }
-    .badge-new { background: rgba(96,96,255,0.15); color: var(--accent2); border: 1px solid rgba(96,96,255,0.3); }
-    .badge-neutral { background: rgba(128,128,160,0.1); color: var(--text-muted); border: 1px solid var(--border); }
-
-    .log-loading { padding: 10px 12px; color: var(--text-hint); font-size: 12px; }
-    .dots span { animation: blink 1s infinite; }
-    .dots span:nth-child(2) { animation-delay: 0.2s; }
-    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    /* LOG */
+    .test-log { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+    .log-entry { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+    .log-hdr { background:var(--surface2); padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+    .log-action-txt { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent2); }
+    .log-meta { font-size:10px; color:var(--hint); font-family:'JetBrains Mono',monospace; }
+    .log-body { padding:8px 10px; font-size:12px; line-height:1.6; color:var(--muted); font-family:'JetBrains Mono',monospace; white-space:pre-wrap; }
+    .log-changes { padding:6px 10px; background:rgba(64,208,128,0.05); border-top:1px solid rgba(64,208,128,0.15); display:flex; flex-wrap:wrap; gap:5px; }
+    .badge { font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 7px; border-radius:3px; font-weight:600; }
+    .badge-up { background:rgba(64,208,128,0.15); color:var(--success); border:1px solid rgba(64,208,128,0.3); }
+    .badge-dn { background:rgba(255,64,96,0.15); color:var(--danger); border:1px solid rgba(255,64,96,0.3); }
+    .badge-new { background:rgba(96,96,255,0.15); color:var(--accent2); border:1px solid rgba(96,96,255,0.3); }
+    .badge-warn { background:rgba(255,176,64,0.15); color:var(--warning); border:1px solid rgba(255,176,64,0.3); }
+    .badge-sys { background:rgba(160,96,255,0.15); color:var(--magic); border:1px solid rgba(160,96,255,0.3); }
+    .log-loading { padding:8px 10px; color:var(--hint); font-family:'JetBrains Mono',monospace; font-size:11px; }
+    .dots span { animation:blink 1s infinite; color:var(--accent); }
+    .dots span:nth-child(2) { animation-delay:0.2s; }
+    .dots span:nth-child(3) { animation-delay:0.4s; }
     @keyframes blink { 0%,60%,100%{opacity:0.2} 30%{opacity:1} }
 
-    /* Input zone */
-    .input-zone {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 12px 16px;
-    }
-    .input-row { display: flex; gap: 8px; }
-    .action-input { flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
-    .action-input:focus { outline: none; border-color: var(--accent); }
-    .action-input::placeholder { color: var(--text-hint); }
-    .send-btn { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: var(--accent); color: white; border: none; border-radius: 6px; padding: 10px 18px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
-    .send-btn:hover { background: #7070FF; }
-    .send-btn:disabled { opacity: 0.4; cursor: default; }
-    .input-hint { font-size: 10px; color: var(--text-hint); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+    /* INPUT */
+    .input-zone { background:var(--surface); border-top:1px solid var(--border); padding:10px 14px; }
+    .inp-row { display:flex; gap:8px; }
+    .act-inp { flex:1; font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:9px 12px; }
+    .act-inp:focus { outline:none; border-color:var(--accent); }
+    .act-inp::placeholder { color:var(--hint); }
+    .send-btn { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; background:var(--accent); color:white; border:none; border-radius:6px; padding:9px 16px; cursor:pointer; white-space:nowrap; }
+    .send-btn:hover { background:#7070FF; }
+    .send-btn:disabled { opacity:0.4; cursor:default; }
+    .inp-hint { font-size:10px; color:var(--hint); margin-top:5px; font-family:'JetBrains Mono',monospace; }
 
-    .hidden { display: none; }
-    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<header class="header">
-  <div>
-    <div class="header-title">RPG SANDBOX</div>
-    <div class="header-sub">Bac à sable de test — cohérence mécanique</div>
-  </div>
-  <div class="api-row">
-    <input id="api-input" class="api-input" type="password" placeholder="sk-ant-api03-..." />
-    <button class="api-btn" onclick="saveApiKey()">Connecter</button>
-    <span class="api-status" id="api-status">○ Non connecté</span>
+<header class="hdr">
+  <div class="hdr-title">RPG SANDBOX v2 — SYSTÈME SYSTÉMIQUE</div>
+  <div class="hdr-right">
+    <input id="api-inp" class="api-inp" type="password" placeholder="sk-ant-api03-..." />
+    <button class="btn-sm" onclick="saveApi()">Connecter</button>
+    <span class="api-st" id="api-st">○ Non connecté</span>
   </div>
 </header>
 
-<!-- FICHE PERSONNAGE -->
-<aside class="sheet-panel">
+<!-- LEFT PANEL -->
+<aside class="left">
+  <div class="panel-tabs">
+    <div class="tab active" onclick="showTab('attrs')">FICHE</div>
+    <div class="tab" onclick="showTab('comps')">COMP.</div>
+    <div class="tab" onclick="showTab('loops')">BOUCLES</div>
+  </div>
 
-  <!-- Identité -->
-  <div class="sheet-section">
-    <div class="section-title">Identité</div>
-    <div class="identity-grid">
-      <div class="id-field id-input wide">
-        <div class="id-label">NOM</div>
-        <input class="id-input" id="pc-nom" type="text" value="Personnage Test" />
+  <!-- FICHE -->
+  <div id="tab-attrs" class="tab-content active">
+
+    <!-- Identité rapide -->
+    <div class="sec">
+      <div class="sec-title">Identité</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">NOM</div>
+          <input id="pc-nom" class="api-inp" style="width:100%;font-size:11px;" type="text" value="Test" />
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">ÂGE</div>
+          <input id="pc-age" class="api-inp" style="width:100%;font-size:11px;" type="number" value="17" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">TALENT</div>
+          <select id="pc-talent" class="api-inp" style="width:100%;font-size:11px;">
+            <option value="Normal ×1.0">Normal ×1.0</option>
+            <option value="Doué ×1.5">Doué ×1.5</option>
+            <option value="Très doué ×2.0">Très doué ×2.0</option>
+            <option value="Prodige ×2.5" selected>Prodige ×2.5</option>
+            <option value="Légende ×3.0">Légende ×3.0</option>
+          </select>
+        </div>
       </div>
-      <div class="id-field">
-        <div class="id-label">CLASSE</div>
-        <input class="id-input" id="pc-classe" type="text" value="Aventurier" />
+    </div>
+
+    <!-- Ressources -->
+    <div class="sec">
+      <div class="sec-title">Ressources</div>
+      <div class="res-list">
+        <div>
+          <div class="res-row">
+            <span class="res-lbl">PV</span>
+            <div class="bar-bg"><div class="bar-fill bar-pv" id="bar-pv" style="width:100%"></div></div>
+            <span class="res-val" id="val-pv">650/650</span>
+          </div>
+          <div class="res-inputs">
+            <input class="res-num" id="pv-c" type="number" value="650" onchange="syncRes('pv')" />
+            <span style="color:var(--hint);align-self:center;">/</span>
+            <input class="res-num" id="pv-m" type="number" value="650" onchange="syncRes('pv')" />
+          </div>
+        </div>
+        <div>
+          <div class="res-row">
+            <span class="res-lbl">PF</span>
+            <div class="bar-bg"><div class="bar-fill bar-pf" id="bar-pf" style="width:100%"></div></div>
+            <span class="res-val" id="val-pf">600/600</span>
+          </div>
+          <div class="res-inputs">
+            <input class="res-num" id="pf-c" type="number" value="600" onchange="syncRes('pf')" />
+            <span style="color:var(--hint);align-self:center;">/</span>
+            <input class="res-num" id="pf-m" type="number" value="600" onchange="syncRes('pf')" />
+          </div>
+        </div>
+        <div>
+          <div class="res-row">
+            <span class="res-lbl">PM</span>
+            <div class="bar-bg"><div class="bar-fill bar-pm" id="bar-pm" style="width:100%"></div></div>
+            <span class="res-val" id="val-pm">50/50</span>
+          </div>
+          <div class="res-inputs">
+            <input class="res-num" id="pm-c" type="number" value="50" onchange="syncRes('pm')" />
+            <span style="color:var(--hint);align-self:center;">/</span>
+            <input class="res-num" id="pm-m" type="number" value="50" onchange="syncRes('pm')" />
+          </div>
+        </div>
+        <div class="res-row">
+          <span class="res-lbl">☆</span>
+          <div class="bar-bg"><div class="bar-fill bar-chance" id="bar-ch" style="width:10%"></div></div>
+          <input class="res-num" id="ch-v" type="number" value="10" min="0" max="100" onchange="syncChance()" style="margin-left:auto;" />
+        </div>
+        <!-- Zone PM → PF indicator -->
+        <div id="pm-pf-zone" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);display:none;">
+          ⚡ ZONE: <span id="pm-zone-label">VERTE</span>
+        </div>
       </div>
-      <div class="id-field">
-        <div class="id-label">ÂGE</div>
-        <input class="id-input" id="pc-age" type="number" value="17" min="1" max="100" />
-      </div>
-      <div class="id-field">
-        <div class="id-label">TALENT</div>
-        <select class="id-input" id="pc-talent">
-          <option value="Normal ×1.0">Normal ×1.0</option>
-          <option value="Doué ×1.5">Doué ×1.5</option>
-          <option value="Très doué ×2.0">Très doué ×2.0</option>
-          <option value="Prodige ×2.5" selected>Prodige ×2.5</option>
-          <option value="Légende ×3.0">Légende ×3.0</option>
-        </select>
-      </div>
+    </div>
+
+    <!-- Attributs -->
+    <div class="sec">
+      <div class="sec-title">Attributs <span style="font-size:8px;color:var(--hint)">(clic = modifier)</span></div>
+      <div class="attrs-grid" id="attrs-grid"></div>
     </div>
   </div>
 
-  <!-- Ressources -->
-  <div class="sheet-section">
-    <div class="section-title">Ressources</div>
-    <div class="resource-list">
-      <div class="resource-row">
-        <span class="res-label">PV</span>
-        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pv" id="bar-pv" style="width:100%"></div></div>
-        <span class="res-val" id="val-pv">650/650</span>
-      </div>
-      <div class="res-edit">
-        <input class="res-num" id="pv-cur" type="number" value="650" onchange="updateRes('pv')" />
-        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
-        <input class="res-num" id="pv-max" type="number" value="650" onchange="updateRes('pv')" />
-      </div>
-      <div class="resource-row">
-        <span class="res-label">PF</span>
-        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pf" id="bar-pf" style="width:100%"></div></div>
-        <span class="res-val" id="val-pf">600/600</span>
-      </div>
-      <div class="res-edit">
-        <input class="res-num" id="pf-cur" type="number" value="600" onchange="updateRes('pf')" />
-        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
-        <input class="res-num" id="pf-max" type="number" value="600" onchange="updateRes('pf')" />
-      </div>
-      <div class="resource-row">
-        <span class="res-label">PM</span>
-        <div class="bar-bg res-bar-bg"><div class="res-bar bar-pm" id="bar-pm" style="width:100%"></div></div>
-        <span class="res-val" id="val-pm">50/50</span>
-      </div>
-      <div class="res-edit">
-        <input class="res-num" id="pm-cur" type="number" value="50" onchange="updateRes('pm')" />
-        <span style="color:var(--text-hint);font-size:11px;align-self:center;">/</span>
-        <input class="res-num" id="pm-max" type="number" value="50" onchange="updateRes('pm')" />
-      </div>
-      <div class="resource-row">
-        <span class="res-label">☆</span>
-        <div class="bar-bg res-bar-bg"><div class="res-bar bar-chance" id="bar-chance" style="width:10%"></div></div>
-        <span class="res-val" id="val-chance">10</span>
-      </div>
-      <div class="res-edit">
-        <input class="res-num" id="chance-val" type="number" value="10" min="0" max="100" onchange="updateChance()" />
-      </div>
+  <!-- COMPÉTENCES -->
+  <div id="tab-comps" class="tab-content">
+    <div class="comp-filter">
+      <button class="cf-btn active" onclick="filterC('all',this)">Tout</button>
+      <button class="cf-btn" onclick="filterC('⚔',this)">⚔</button>
+      <button class="cf-btn" onclick="filterC('🏃',this)">🏃</button>
+      <button class="cf-btn" onclick="filterC('🔮',this)">🔮</button>
+      <button class="cf-btn" onclick="filterC('💬',this)">💬</button>
+      <button class="cf-btn" onclick="filterC('👁',this)">👁</button>
+      <button class="cf-btn" onclick="filterC('🌲',this)">🌲</button>
+      <button class="cf-btn" onclick="filterC('📚',this)">📚</button>
+      <button class="cf-btn" onclick="filterC('🛠',this)">🛠</button>
+      <button class="cf-btn" onclick="filterC('>0',this)">Acquises</button>
     </div>
+    <div class="comp-list" id="comp-list"></div>
   </div>
 
-  <!-- Attributs -->
-  <div class="sheet-section">
-    <div class="section-title">Attributs <span style="font-size:9px;color:var(--text-hint)">(cliquer pour modifier)</span></div>
-    <div class="attrs-grid" id="attrs-grid">
-      <!-- généré par JS -->
-    </div>
+  <!-- BOUCLES SYSTÉMIQUES -->
+  <div id="tab-loops" class="tab-content">
+    <div class="sec-title">6 Boucles systémiques</div>
+    <div class="loops-list" id="loops-list"></div>
   </div>
-
-  <!-- Compétences -->
-  <div class="sheet-section">
-    <div class="section-title">Compétences</div>
-    <div class="comp-filter" id="comp-filter">
-      <button class="comp-cat-btn active" onclick="filterCat('all', this)">Tout</button>
-      <button class="comp-cat-btn" onclick="filterCat('⚔ Combat', this)">⚔</button>
-      <button class="comp-cat-btn" onclick="filterCat('🏃 Mouvement', this)">🏃</button>
-      <button class="comp-cat-btn" onclick="filterCat('🔮 Magie', this)">🔮</button>
-      <button class="comp-cat-btn" onclick="filterCat('💬 Social', this)">💬</button>
-      <button class="comp-cat-btn" onclick="filterCat('👁 Perception', this)">👁</button>
-      <button class="comp-cat-btn" onclick="filterCat('🌲 Survie', this)">🌲</button>
-      <button class="comp-cat-btn" onclick="filterCat('📚 Savoir', this)">📚</button>
-      <button class="comp-cat-btn" onclick="filterCat('🛠 Artisanat', this)">🛠</button>
-      <button class="comp-cat-btn" onclick="filterCat('>0', this)">Acquises</button>
-    </div>
-    <div class="comp-list" id="comp-list">
-      <!-- généré par JS -->
-    </div>
-  </div>
-
 </aside>
 
-<!-- ZONE TEST -->
-<main class="test-panel">
-  <div class="test-toolbar">
-    <span class="toolbar-label">MODE</span>
-    <select class="mode-select" id="test-mode">
-      <option value="combat">⚔ Combat</option>
-      <option value="social">💬 Social</option>
-      <option value="exploration">🗺 Exploration</option>
-      <option value="magie">🔮 Magie</option>
+<!-- RIGHT PANEL -->
+<main class="right">
+  <div class="right-toolbar">
+    <span class="tb-label">MODE</span>
+    <select class="tb-select" id="test-mode">
       <option value="libre" selected>🎲 Libre</option>
+      <option value="combat">⚔ Combat</option>
+      <option value="magie">🔮 Magie</option>
+      <option value="social">💬 Social</option>
+      <option value="progression">📈 Progression</option>
     </select>
-    <span class="toolbar-label" style="margin-left:10px;">DÉ</span>
-    <select class="mode-select" id="die-mode">
-      <option value="auto">Auto (aléatoire)</option>
-      <option value="20">Forcer 20 (critique)</option>
-      <option value="1">Forcer 1 (fumble)</option>
-      <option value="10">Forcer 10 (moyen)</option>
+    <span class="tb-label">DÉ</span>
+    <select class="tb-select" id="die-sel">
+      <option value="auto" selected>Auto</option>
+      <option value="20">Forcer 20</option>
+      <option value="1">Forcer 1</option>
+      <option value="10">Moyen 10</option>
     </select>
-    <button class="clear-btn" onclick="clearLog()">Effacer log</button>
+    <button class="tb-btn preset" onclick="loadPreset('mage_pur')">Preset: Mage Pur</button>
+    <button class="tb-btn preset" onclick="loadPreset('mage_guerrier')">Preset: Mage-Guerrier</button>
+    <button class="tb-btn preset" onclick="loadPreset('guerrier')">Preset: Guerrier</button>
+    <button class="tb-btn preset" onclick="loadPreset('ladix')">Preset: Ladix</button>
+    <button class="tb-btn" onclick="clearLog()" style="margin-left:auto;">Effacer</button>
   </div>
 
   <div class="test-log" id="test-log">
-    <div style="color:var(--text-hint);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:40px;">
-      Configure le personnage à gauche puis tape une action ci-dessous.<br/>
-      Claude analysera la cohérence mécanique et mettra à jour la fiche.
+    <div style="color:var(--hint);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:40px 20px;line-height:2;">
+      Bac à sable — Test système systémique complet<br/>
+      Clique sur une boucle systémique → test automatique<br/>
+      Ou tape une action libre ci-dessous
     </div>
   </div>
 
   <div class="input-zone">
-    <div class="input-row">
-      <input id="action-input" class="action-input" type="text" placeholder="Ex: Je frappe l'ennemi avec mon épée longue / Je tente de persuader le garde / Je lance un sort de feu..." />
+    <div class="inp-row">
+      <input id="act-inp" class="act-inp" type="text" placeholder="Action à tester... ex: Je frappe avec mon épée / Je lance Maîtrise Ombre / Je persuade le garde" />
       <button id="send-btn" class="send-btn" onclick="sendAction()">Tester →</button>
     </div>
-    <div class="input-hint">Signaux détectés automatiquement : HP: PF: PM: PROG: ETAT: CHANCE: — La fiche se met à jour en temps réel</div>
+    <div class="inp-hint">Signaux : HP: PF: PM: PROG: ETAT: CHANCE: ATTR_UP: PM_FORCE: — Fiche mise à jour en temps réel</div>
   </div>
 </main>
 
 <script>
-/* ════════════════════════════════════════
-   DONNÉES PERSONNAGE
-════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
 let apiKey = '';
+let currentCat = 'all';
 
-const ATTRS_DEF = [
-  { key:'force',        label:'FOR', val:4 },
-  { key:'endurance',    label:'END', val:5 },
-  { key:'agilite',      label:'AGI', val:6 },
-  { key:'dexterite',    label:'DEX', val:5 },
-  { key:'sante',        label:'SAN', val:5 },
-  { key:'perception',   label:'PER', val:7 },
-  { key:'intelligence', label:'INT', val:5 },
-  { key:'volonte',      label:'VOL', val:4 },
-  { key:'charisme',     label:'CHA', val:4 },
-  { key:'mana',         label:'MAN', val:5 },
+const ATTRS = [
+  // Physiques
+  {k:'force',      lbl:'FOR', v:4,  type:'physical'},
+  {k:'endurance',  lbl:'END', v:5,  type:'physical'},
+  {k:'agilite',    lbl:'AGI', v:6,  type:'physical'},
+  {k:'dexterite',  lbl:'DEX', v:5,  type:'physical'},
+  {k:'sante',      lbl:'SAN', v:5,  type:'physical'},
+  // Mentaux
+  {k:'perception', lbl:'PER', v:7,  type:'mental'},
+  {k:'intelligence',lbl:'INT',v:5,  type:'mental'},
+  {k:'volonte',    lbl:'VOL', v:4,  type:'mental'},
+  {k:'charisme',   lbl:'CHA', v:4,  type:'mental'},
+  // Magiques
+  {k:'mana',       lbl:'MAN', v:5,  type:'magic'},
+  {k:'aff_feu',    lbl:'FEU', v:0,  type:'magic'},
+  {k:'aff_eau',    lbl:'EAU', v:0,  type:'magic'},
+  {k:'aff_terre',  lbl:'TER', v:0,  type:'magic'},
+  {k:'aff_vent',   lbl:'VEN', v:0,  type:'magic'},
+  {k:'aff_lumiere',lbl:'LUM', v:0,  type:'magic'},
+  {k:'aff_ombre',  lbl:'OMB', v:9,  type:'magic'},
 ];
 
-const AFFINITES_DEF = [
-  { key:'aff_feu',     label:'FEU', val:0 },
-  { key:'aff_eau',     label:'EAU', val:0 },
-  { key:'aff_terre',   label:'TER', val:0 },
-  { key:'aff_vent',    label:'VEN', val:0 },
-  { key:'aff_lumiere', label:'LUM', val:0 },
-  { key:'aff_ombre',   label:'OMB', val:9 },
+let attrs = Object.fromEntries(ATTRS.map(a => [a.k, a.v]));
+let res = { pv:{c:650,m:650}, pf:{c:600,m:600}, pm:{c:50,m:50}, chance:10 };
+
+const COMPS = [
+  {cat:'⚔',nom:'Combat Épée Longue',   v:0,  base:['agilite','dexterite']},
+  {cat:'⚔',nom:'Combat Épée Courte',   v:0,  base:['agilite','dexterite']},
+  {cat:'⚔',nom:'Combat Dague',          v:5,  base:['agilite','dexterite']},
+  {cat:'⚔',nom:'Combat Mains Nues',     v:8,  base:['force','agilite']},
+  {cat:'⚔',nom:'Esquive',               v:12, base:['agilite']},
+  {cat:'⚔',nom:'Parade Arme',           v:0,  base:['dexterite','agilite']},
+  {cat:'⚔',nom:'Résistance Physique',   v:5,  base:['force','endurance','sante']},
+  {cat:'⚔',nom:'Résistance Douleur',    v:5,  base:['volonte','sante']},
+  {cat:'⚔',nom:'Endurance Combat',      v:5,  base:['endurance','volonte']},
+  {cat:'⚔',nom:'Résistance Fatigue',    v:5,  base:['endurance']},
+  {cat:'⚔',nom:'Feinte',                v:0,  base:['intelligence','agilite']},
+  {cat:'⚔',nom:'Charge',                v:0,  base:['force','endurance']},
+  {cat:'🏃',nom:'Course',               v:15, base:['agilite','endurance']},
+  {cat:'🏃',nom:'Marche',               v:43, base:['endurance']},
+  {cat:'🏃',nom:'Sprint',               v:8,  base:['agilite']},
+  {cat:'🏃',nom:'Escalade',             v:3,  base:['force','agilite']},
+  {cat:'🏃',nom:'Acrobatie',            v:1,  base:['agilite']},
+  {cat:'🏃',nom:'Équilibre',            v:6,  base:['agilite','dexterite']},
+  {cat:'🏃',nom:'Natation',             v:1,  base:['endurance','force']},
+  {cat:'🔮',nom:'Maîtrise Magie',       v:5,  base:['intelligence','mana'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Ombre',       v:0,  base:['intelligence','aff_ombre'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Feu',         v:0,  base:['intelligence','aff_feu'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Eau',         v:0,  base:['intelligence','aff_eau'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Terre',       v:0,  base:['intelligence','aff_terre'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Vent',        v:0,  base:['intelligence','aff_vent'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Lumière',     v:0,  base:['intelligence','aff_lumiere'], magic:true},
+  {cat:'🔮',nom:'Maîtrise Lave',        v:0,  base:['intelligence','aff_feu','aff_terre'], magic:true, fusion:true},
+  {cat:'🔮',nom:'Maîtrise Foudre',      v:0,  base:['intelligence','aff_feu','aff_vent'], magic:true, fusion:true},
+  {cat:'🔮',nom:'Maîtrise Glace',       v:0,  base:['intelligence','aff_eau','aff_vent'], magic:true, fusion:true},
+  {cat:'💬',nom:'Persuasion',           v:3,  base:['charisme','intelligence']},
+  {cat:'💬',nom:'Intimidation',         v:5,  base:['charisme','force','volonte']},
+  {cat:'💬',nom:'Tromperie',            v:8,  base:['charisme','intelligence']},
+  {cat:'💬',nom:'Marchandage',          v:2,  base:['charisme','intelligence']},
+  {cat:'💬',nom:'Leadership',           v:0,  base:['charisme','volonte']},
+  {cat:'👁',nom:'Vigilance',            v:15, base:['perception']},
+  {cat:'👁',nom:'Observation',          v:12, base:['perception','intelligence']},
+  {cat:'👁',nom:'Pistage',              v:3,  base:['perception','intelligence']},
+  {cat:'👁',nom:'Détection Magie',      v:8,  base:['perception','intelligence']},
+  {cat:'👁',nom:'Sixième Sens',         v:0,  base:['perception','volonte']},
+  {cat:'🌲',nom:'Survie Nature',        v:5,  base:['endurance','perception']},
+  {cat:'🌲',nom:'Orientation',          v:3,  base:['perception','intelligence']},
+  {cat:'🌲',nom:'Premiers Soins',       v:3,  base:['intelligence','dexterite']},
+  {cat:'📚',nom:'Langue Maternelle',    v:85, base:['intelligence']},
+  {cat:'📚',nom:'Histoire',             v:4,  base:['intelligence']},
+  {cat:'📚',nom:'Médecine',             v:0,  base:['intelligence','dexterite']},
+  {cat:'🛠',nom:'Forge',                v:0,  base:['force','dexterite']},
+  {cat:'🛠',nom:'Alchimie',             v:0,  base:['intelligence','dexterite']},
+  {cat:'🛠',nom:'Cuisine',              v:5,  base:['dexterite','intelligence']},
 ];
 
-let pc = {
-  attrs: Object.fromEntries(ATTRS_DEF.map(a => [a.key, a.val])),
-  affs:  Object.fromEntries(AFFINITES_DEF.map(a => [a.key, a.val])),
-  pv: { cur:650, max:650 },
-  pf: { cur:600, max:600 },
-  pm: { cur:50,  max:50 },
-  chance: 10,
-  competences: getDefaultComps(),
+/* ══════════════════════════════════════════
+   BOUCLES SYSTÉMIQUES
+══════════════════════════════════════════ */
+const LOOPS = [
+  {
+    id:'loop1', title:'Boucle 1 — Combat → Attributs physiques',
+    desc:'Quand Combat Épée ≥ Agilité×10 → Agilité monte. Agilité haute = Esquive progresse plus vite.',
+    color:'var(--physical)',
+    tests:[
+      'Je m\'entraîne avec mon épée longue pendant 1h [DÉ:15] — évalue la progression et si un attribut devrait monter',
+      'Ma compétence Combat Épée est à 60 et mon Agilité est à 6. Est-ce que l\'Agilité devrait monter ?',
+    ]
+  },
+  {
+    id:'loop2', title:'Boucle 2 — Magie ↔ Physique (PM→PF)',
+    desc:'PM épuisés → peut forcer avec PF. Un Mage-Guerrier (PF 600) lance plus de sorts qu\'un Mage Pur (PF 50).',
+    color:'var(--magic)',
+    tests:[
+      'Je lance un sort d\'Ombre mais mes PM sont à 0/50. Je force avec mes PF [DÉ:12]',
+      'Mage Pur (PM 90, PF 50) vs Mage-Guerrier (PM 60, PF 600) — combien de sorts chacun peut lancer en combat ?',
+    ]
+  },
+  {
+    id:'loop3', title:'Boucle 3 — Maîtrise ↔ Affinité magique',
+    desc:'Maîtrise haute + sorts challengeants → Affinité monte. Affinité haute → Maîtrise progresse plus vite.',
+    color:'var(--magic)',
+    tests:[
+      'Ma Maîtrise Ombre est à 0 mais mon Affinité Ombre est à 9. Je tente un sort d\'ombre [DÉ:18]',
+      'Ma Maîtrise Ombre est à 90 et Affinité Ombre 6. Est-ce que l\'Affinité devrait monter ? (seuil = Affinité×15)',
+    ]
+  },
+  {
+    id:'loop4', title:'Boucle 4 — Fusions élémentaires',
+    desc:'Maîtrise Feu + Maîtrise Vent ≥ seuils → Débloque Maîtrise Foudre. Pratiquer Foudre améliore Feu ET Vent.',
+    color:'var(--warning)',
+    tests:[
+      'Mes Maîtrises Feu=25 et Vent=30 sont-elles suffisantes pour débloquer Maîtrise Foudre ? (seuil: les deux ≥ 25)',
+      'Je lance un sort de Foudre (Maîtrise Foudre 15) — est-ce que Maîtrise Feu et Maîtrise Vent devraient progresser ?',
+    ]
+  },
+  {
+    id:'loop5', title:'Boucle 5 — Fatigue ↔ Performance',
+    desc:'PF bas = malus performance. Se battre épuisé est risqué mais force une progression plus rapide.',
+    color:'var(--warning)',
+    tests:[
+      'Mon PF est à 15% (90/600). Je combats quand même. Quels malus s\'appliquent et quel est le risque ?',
+      'Je m\'entraîne jusqu\'à épuisement complet (PF 0). Quelles sont les conséquences et bénéfices ?',
+    ]
+  },
+  {
+    id:'loop6', title:'Boucle 6 — Talent × Travail',
+    desc:'Physique/Mental : attribut bas = progresse vite. Magie : affinité haute = progresse vite.',
+    color:'var(--accent2)',
+    tests:[
+      'Mon Charisme est à 4. Je tente de persuader des gens tous les jours. À quelle vitesse progresse Persuasion ? (mult = (11-4.5)÷2)',
+      'Mon Affinité Ombre est à 9 et mon Intelligence à 5. À quelle vitesse progresse Maîtrise Ombre ? (score=(5+9)÷2=7, mult=7÷2=3.5)',
+    ]
+  },
+];
+
+/* ══════════════════════════════════════════
+   PRESETS
+══════════════════════════════════════════ */
+const PRESETS = {
+  mage_pur: {
+    nom:'Mage Pur', age:25, talent:'Normal ×1.0',
+    attrs:{force:3,endurance:3,agilite:4,dexterite:5,sante:3,perception:7,intelligence:9,volonte:7,charisme:4,mana:9,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:2},
+    res:{pv:{c:350,m:350},pf:{c:50,m:50},pm:{c:90,m:90},chance:12},
+    comps:[{nom:'Maîtrise Feu',v:70},{nom:'Maîtrise Magie',v:60},{nom:'Intelligence',v:85}]
+  },
+  mage_guerrier: {
+    nom:'Mage-Guerrier', age:28, talent:'Doué ×1.5',
+    attrs:{force:6,endurance:8,agilite:6,dexterite:6,sante:6,perception:6,intelligence:7,volonte:6,charisme:5,mana:6,aff_feu:5,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:3},
+    res:{pv:{c:650,m:650},pf:{c:600,m:600},pm:{c:60,m:60},chance:15},
+    comps:[{nom:'Combat Épée Longue',v:45},{nom:'Maîtrise Feu',v:40},{nom:'Résistance Fatigue',v:85},{nom:'Endurance Combat',v:60}]
+  },
+  guerrier: {
+    nom:'Guerrier Pur', age:30, talent:'Normal ×1.0',
+    attrs:{force:8,endurance:8,agilite:7,dexterite:6,sante:7,perception:5,intelligence:4,volonte:7,charisme:5,mana:2,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:0},
+    res:{pv:{c:850,m:850},pf:{c:800,m:800},pm:{c:20,m:20},chance:10},
+    comps:[{nom:'Combat Épée Longue',v:65},{nom:'Esquive',v:50},{nom:'Résistance Physique',v:70},{nom:'Endurance Combat',v:75}]
+  },
+  ladix: {
+    nom:'Ladix', age:17, talent:'Prodige ×2.5',
+    attrs:{force:4,endurance:5,agilite:7,dexterite:7,sante:5,perception:8,intelligence:9,volonte:7,charisme:4,mana:8,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:9},
+    res:{pv:{c:750,m:750},pf:{c:600,m:600},pm:{c:80,m:80},chance:28},
+    comps:[{nom:'Maîtrise Magie',v:5},{nom:'Maîtrise Ombre',v:0},{nom:'Détection Magie',v:25},{nom:'Observation',v:20},{nom:'Tromperie',v:15},{nom:'Vigilance',v:22}]
+  }
 };
 
-function getDefaultComps() {
-  const list = [
-    // Combat
-    {cat:'⚔ Combat', nom:'Combat Épée Longue',     val:0},
-    {cat:'⚔ Combat', nom:'Combat Épée Courte',      val:0},
-    {cat:'⚔ Combat', nom:'Combat Dague',             val:5},
-    {cat:'⚔ Combat', nom:'Combat Mains Nues',        val:8},
-    {cat:'⚔ Combat', nom:'Esquive',                  val:12},
-    {cat:'⚔ Combat', nom:'Parade Arme',              val:0},
-    {cat:'⚔ Combat', nom:'Résistance Physique',      val:5},
-    {cat:'⚔ Combat', nom:'Résistance Douleur',       val:5},
-    {cat:'⚔ Combat', nom:'Endurance Combat',         val:5},
-    {cat:'⚔ Combat', nom:'Feinte',                   val:0},
-    {cat:'⚔ Combat', nom:'Riposte',                  val:0},
-    {cat:'⚔ Combat', nom:'Charge',                   val:0},
-    // Mouvement
-    {cat:'🏃 Mouvement', nom:'Course',               val:15},
-    {cat:'🏃 Mouvement', nom:'Marche',               val:43},
-    {cat:'🏃 Mouvement', nom:'Sprint',               val:8},
-    {cat:'🏃 Mouvement', nom:'Escalade',             val:3},
-    {cat:'🏃 Mouvement', nom:'Acrobatie',            val:1},
-    {cat:'🏃 Mouvement', nom:'Équilibre',            val:6},
-    {cat:'🏃 Mouvement', nom:'Natation',             val:1},
-    // Magie
-    {cat:'🔮 Magie', nom:'Maîtrise Magie',           val:5},
-    {cat:'🔮 Magie', nom:'Maîtrise Ombre',           val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Feu',             val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Eau',             val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Terre',           val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Vent',            val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Lumière',         val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Lave',            val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Glace',           val:0},
-    {cat:'🔮 Magie', nom:'Maîtrise Foudre',          val:0},
-    // Social
-    {cat:'💬 Social', nom:'Persuasion',              val:3},
-    {cat:'💬 Social', nom:'Intimidation',            val:5},
-    {cat:'💬 Social', nom:'Tromperie',               val:8},
-    {cat:'💬 Social', nom:'Marchandage',             val:2},
-    {cat:'💬 Social', nom:'Leadership',              val:0},
-    {cat:'💬 Social', nom:'Séduction',               val:0},
-    // Perception
-    {cat:'👁 Perception', nom:'Vigilance',           val:15},
-    {cat:'👁 Perception', nom:'Observation',         val:12},
-    {cat:'👁 Perception', nom:'Pistage',             val:3},
-    {cat:'👁 Perception', nom:'Investigation',       val:5},
-    {cat:'👁 Perception', nom:'Détection Magie',     val:8},
-    {cat:'👁 Perception', nom:'Sixième Sens',        val:0},
-    // Survie
-    {cat:'🌲 Survie', nom:'Survie Nature',           val:5},
-    {cat:'🌲 Survie', nom:'Orientation',             val:3},
-    {cat:'🌲 Survie', nom:'Premiers Soins',          val:3},
-    {cat:'🌲 Survie', nom:'Résistance Fatigue',      val:5},
-    {cat:'🌲 Survie', nom:'Camouflage',              val:0},
-    // Savoir
-    {cat:'📚 Savoir', nom:'Langue Maternelle',       val:85},
-    {cat:'📚 Savoir', nom:'Histoire',                val:4},
-    {cat:'📚 Savoir', nom:'Médecine',                val:0},
-    {cat:'📚 Savoir', nom:'Mathématiques',           val:4},
-    // Artisanat
-    {cat:'🛠 Artisanat', nom:'Cuisine',              val:5},
-    {cat:'🛠 Artisanat', nom:'Forge',                val:0},
-    {cat:'🛠 Artisanat', nom:'Alchimie',             val:0},
-  ];
-  return list;
-}
-
-/* ════════════════════════════════════════
-   INIT UI
-════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('rpg_api_key');
-  if (saved) { apiKey = saved; document.getElementById('api-input').value = saved; setApiStatus('ok'); }
-  renderAttrs();
-  renderComps('all');
-  document.getElementById('action-input').addEventListener('keydown', e => { if(e.key==='Enter') sendAction(); });
-  document.getElementById('api-input').addEventListener('keydown', e => { if(e.key==='Enter') saveApiKey(); });
+  if (saved) { apiKey=saved; document.getElementById('api-inp').value=saved; setApiSt('ok'); }
+  document.getElementById('act-inp').addEventListener('keydown', e => { if(e.key==='Enter') sendAction(); });
+  document.getElementById('api-inp').addEventListener('keydown', e => { if(e.key==='Enter') saveApi(); });
+  renderAttrs(); renderComps('all'); renderLoops();
+  loadPreset('ladix');
 });
 
-function saveApiKey() {
-  const val = document.getElementById('api-input').value.trim();
-  if (!val.startsWith('sk-ant-')) { setApiStatus('err'); return; }
-  apiKey = val; localStorage.setItem('rpg_api_key', val); setApiStatus('ok');
+function saveApi() {
+  const v = document.getElementById('api-inp').value.trim();
+  if (!v.startsWith('sk-ant-')) { setApiSt('err'); return; }
+  apiKey = v; localStorage.setItem('rpg_api_key', v); setApiSt('ok');
 }
-function setApiStatus(s) {
-  const el = document.getElementById('api-status');
-  el.className = 'api-status ' + s;
-  el.textContent = s === 'ok' ? '✓ Connecté' : '✗ Clé invalide';
+function setApiSt(s) { const el=document.getElementById('api-st'); el.className='api-st '+s; el.textContent=s==='ok'?'✓ Connecté':'✗ Invalide'; }
+
+function showTab(t) {
+  document.querySelectorAll('.tab,.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[onclick="showTab('${t}')"]`).classList.add('active');
+  document.getElementById('tab-'+t).classList.add('active');
 }
 
-/* ── Attributs ── */
+/* ══════════════════════════════════════════
+   PRESETS
+══════════════════════════════════════════ */
+function loadPreset(key) {
+  const p = PRESETS[key]; if (!p) return;
+  document.getElementById('pc-nom').value = p.nom;
+  document.getElementById('pc-age').value = p.age;
+  document.getElementById('pc-talent').value = p.talent;
+  attrs = {...attrs, ...p.attrs};
+  res = JSON.parse(JSON.stringify(p.res));
+  // Reset comps then apply preset
+  COMPS.forEach(c => c.v = getDefaultCompVal(c.nom));
+  if (p.comps) p.comps.forEach(pc2 => { const c=COMPS.find(x=>x.nom===pc2.nom); if(c) c.v=pc2.v; });
+  renderAttrs(); renderComps(currentCat); updateAllBars();
+  addLog(`✓ Preset chargé : ${p.nom}`, '', []);
+}
+
+function getDefaultCompVal(nom) {
+  const defaults = {'Langue Maternelle':85,'Vigilance':15,'Marche':43,'Observation':12,'Esquive':12,'Course':15};
+  return defaults[nom] || 0;
+}
+
+/* ══════════════════════════════════════════
+   RENDER ATTRS
+══════════════════════════════════════════ */
 function renderAttrs() {
   const grid = document.getElementById('attrs-grid');
   grid.innerHTML = '';
-  [...ATTRS_DEF, ...AFFINITES_DEF].forEach(a => {
-    const key = a.key;
-    const val = key.startsWith('aff_') ? pc.affs[key] : pc.attrs[key];
-    const row = document.createElement('div');
-    row.className = 'attr-row';
-    row.innerHTML = `<span class="attr-name">${a.label}</span><span class="attr-val" id="av-${key}" onclick="editAttr('${key}')">${val}</span>`;
-    grid.appendChild(row);
+  ATTRS.forEach(a => {
+    const v = attrs[a.k];
+    const cell = document.createElement('div');
+    cell.className = `attr-cell ${a.type}`;
+    cell.id = 'ac-'+a.k;
+    cell.onclick = () => editAttr(a.k, a.lbl);
+    cell.innerHTML = `<div class="attr-label">${a.lbl}</div><div class="attr-val">${v}</div>`;
+    grid.appendChild(cell);
   });
+  updatePmZone();
 }
 
-function editAttr(key) {
-  const el = document.getElementById('av-' + key);
-  const cur = key.startsWith('aff_') ? pc.affs[key] : pc.attrs[key];
-  const newVal = prompt(`${key.toUpperCase()} (actuel: ${cur}) — nouvelle valeur (1-10):`, cur);
-  if (newVal === null) return;
-  const v = Math.max(0, Math.min(10, parseInt(newVal) || cur));
-  if (key.startsWith('aff_')) pc.affs[key] = v;
-  else pc.attrs[key] = v;
-  el.textContent = v;
+function editAttr(k, lbl) {
+  const cur = attrs[k];
+  const v = prompt(`${lbl} (actuel: ${cur}) — nouvelle valeur (0-10):`, cur);
+  if (v === null) return;
+  attrs[k] = Math.max(0, Math.min(10, parseInt(v)||cur));
+  document.querySelector(`#ac-${k} .attr-val`).textContent = attrs[k];
+  document.getElementById('ac-'+k).classList.add('changed');
+  setTimeout(() => document.getElementById('ac-'+k).classList.remove('changed'), 600);
+  checkBidirectional();
 }
 
-/* ── Compétences ── */
-let currentCat = 'all';
-
-function filterCat(cat, btn) {
+/* ══════════════════════════════════════════
+   RENDER COMPS
+══════════════════════════════════════════ */
+function filterC(cat, btn) {
   currentCat = cat;
-  document.querySelectorAll('.comp-cat-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cf-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderComps(cat);
 }
 
 function renderComps(cat) {
-  const list = document.getElementById('comp-list');
-  list.innerHTML = '';
-  let filtered = pc.competences;
-  if (cat === '>0') filtered = filtered.filter(c => c.val > 0);
+  const list = document.getElementById('comp-list'); list.innerHTML = '';
+  let filtered = COMPS;
+  if (cat === '>0') filtered = filtered.filter(c => c.v > 0);
   else if (cat !== 'all') filtered = filtered.filter(c => c.cat === cat);
-
   filtered.forEach(c => {
     const row = document.createElement('div');
-    row.className = 'comp-row' + (c.val > 0 ? '' : '');
-    row.id = 'cr-' + esc(c.nom);
-
-    let valClass = 'comp-val';
-    if (c.val === 0) valClass += ' low';
-    else if (c.val < 30) valClass += ' low';
-    else if (c.val < 60) valClass += ' med';
-    else if (c.val < 90) valClass += ' high';
-    else valClass += ' max';
-
-    const barColor = c.val === 0 ? 'var(--text-hint)' : c.val < 30 ? 'var(--text-muted)' : c.val < 60 ? 'var(--accent2)' : c.val < 90 ? 'var(--gold)' : 'var(--danger)';
-
+    row.className = 'comp-row'; row.id = 'cr-'+esc(c.nom);
+    const col = c.v===0?'var(--hint)':c.v<30?'var(--muted)':c.v<60?'var(--accent2)':c.v<90?'var(--gold)':'var(--danger)';
     row.innerHTML = `
-      <span class="comp-name ${c.val > 0 ? 'acquired' : ''}">${esc(c.nom)}</span>
-      <div class="comp-bar"><div class="comp-bar-fill" style="width:${c.val}%;background:${barColor}"></div></div>
-      <span class="${valClass}" onclick="editComp('${esc(c.nom)}')" style="cursor:pointer">${c.val}</span>`;
+      <span class="comp-name ${c.v>0?'hi':''}">${esc(c.nom)}${c.magic?'<span style="color:var(--magic);font-size:9px;"> ✦</span>':''}</span>
+      <div class="comp-bar"><div class="comp-fill" style="width:${c.v}%;background:${col}"></div></div>
+      <span class="comp-val" style="color:${col};cursor:pointer;" onclick="editComp('${esc(c.nom)}')">${c.v}</span>`;
     list.appendChild(row);
   });
 }
 
 function editComp(nom) {
-  const c = pc.competences.find(x => x.nom === nom);
-  if (!c) return;
-  const newVal = prompt(`${nom} (actuel: ${c.val}) — nouvelle valeur (0-100):`, c.val);
-  if (newVal === null) return;
-  const v = Math.max(0, Math.min(100, parseInt(newVal) || c.val));
-  c.val = v;
+  const c = COMPS.find(x => x.nom === nom); if (!c) return;
+  const v = prompt(`${nom} (actuel: ${c.v}) — nouvelle valeur (0-100):`, c.v);
+  if (v === null) return;
+  c.v = Math.max(0, Math.min(100, parseInt(v)||c.v));
   renderComps(currentCat);
+  checkBidirectional();
 }
 
-/* ── Ressources ── */
-function updateRes(type) {
-  const cur = parseInt(document.getElementById(`${type}-cur`).value) || 0;
-  const max = parseInt(document.getElementById(`${type}-max`).value) || 1;
-  pc[type] = { cur: Math.min(cur, max), max };
-  const pct = Math.max(0, Math.min(100, (pc[type].cur / pc[type].max) * 100));
-  document.getElementById(`bar-${type}`).style.width = pct + '%';
-  document.getElementById(`val-${type}`).textContent = `${pc[type].cur}/${pc[type].max}`;
-}
-function updateChance() {
-  pc.chance = Math.max(0, Math.min(100, parseInt(document.getElementById('chance-val').value) || 0));
-  document.getElementById('bar-chance').style.width = pc.chance + '%';
-  document.getElementById('val-chance').textContent = pc.chance;
-}
-
-/* ════════════════════════════════════════
-   SYSTEM PROMPT (test mécanique pur)
-════════════════════════════════════════ */
-function buildSystemPrompt() {
-  const attrs = [...ATTRS_DEF, ...AFFINITES_DEF].map(a => {
-    const v = a.key.startsWith('aff_') ? pc.affs[a.key] : pc.attrs[a.key];
-    return `${a.label}:${v}`;
-  }).join(' ');
-
-  const compsAcquises = pc.competences.filter(c => c.val > 0).map(c => `${c.nom} ${c.val}`).join(' | ');
-
-  return `Tu es un moteur de règles JDR en mode TEST MÉCANIQUE PUR.
-Tu analyses la cohérence des actions par rapport aux stats du personnage.
-PAS de narration, PAS d'histoire — uniquement l'analyse mécanique et les conséquences sur la fiche.
-
-PERSONNAGE :
-Nom: ${document.getElementById('pc-nom').value} | Classe: ${document.getElementById('pc-classe').value} | Âge: ${document.getElementById('pc-age').value}ans | Talent: ${document.getElementById('pc-talent').value}
-PV: ${pc.pv.cur}/${pc.pv.max} | PF: ${pc.pf.cur}/${pc.pf.max} | PM: ${pc.pm.cur}/${pc.pm.max} | Chance: ${pc.chance}
-Attributs: ${attrs}
-Compétences acquises: ${compsAcquises || 'aucune'}
-
-RÉFÉRENTIEL NARRATIF RAPIDE :
-- Attributs 1-10 : 5=humain ordinaire | 7=au-dessus de la moyenne | 9=exceptionnel | 10=max humain
-- Affinités 0-10 : 0=aucun sort possible | 3-4=sorts mineurs | 7-8=mage compétent | 10=maître
-- Compétences 0-100 : 0=jamais pratiqué | 20=apprenti | 40=soldat formé | 60=expert | 80=maître
-- PF coûts : marcher 1h=5PF | combat 5min=80-120PF | sort rang3=15-30PM
-- Maîtrise Ombre 0 → AUCUN sort d'ombre possible, même dans un lieu magique
-
-FORMAT DE RÉPONSE STRICT :
-1. ANALYSE: [1-2 phrases — ce que les stats permettent ou interdisent]
-2. RÉSULTAT: [Succès/Échec Partiel/Échec + raison mécanique]
-3. CONSÉQUENCES: [Signaux stats uniquement]
-
-SIGNAUX STATS (utilise EXACTEMENT ce format) :
-HP:-X ou HP:+X | PF:-X ou PF:+X | PM:-X ou PM:+X
-PROG:NomExact:+X (X=0.5 à 2.0 selon difficulté)
-ETAT:nom | CHANCE:+X
-
-RÈGLE ABSOLUE : Si une compétence est à 0 et que l'action la nécessite, signaler l'impossibilité ou la difficulté extrême.
-Ne jamais donner de capacités qui dépassent les stats actuelles.
-Réponds en français, court et factuel.`;
+/* ══════════════════════════════════════════
+   RENDER LOOPS
+══════════════════════════════════════════ */
+function renderLoops() {
+  const list = document.getElementById('loops-list'); list.innerHTML = '';
+  LOOPS.forEach(loop => {
+    const card = document.createElement('div');
+    card.className = 'loop-card'; card.id = loop.id;
+    card.innerHTML = `
+      <div class="loop-title" style="color:${loop.color}">${loop.title}</div>
+      <div class="loop-desc">${loop.desc}</div>
+      ${loop.tests.map((t,i) => `<button class="loop-test-btn" onclick="testLoop('${loop.id}',${i})">▶ Test ${i+1}</button>`).join('')}`;
+    list.appendChild(card);
+  });
 }
 
-/* ════════════════════════════════════════
+function testLoop(loopId, testIdx) {
+  const loop = LOOPS.find(l => l.id === loopId); if (!loop) return;
+  document.getElementById('act-inp').value = loop.tests[testIdx];
+  document.querySelectorAll('.loop-card').forEach(c => c.classList.remove('active-loop'));
+  document.getElementById(loopId).classList.add('active-loop');
+  showTab('attrs');
+  sendAction();
+}
+
+/* ══════════════════════════════════════════
+   RESSOURCES
+══════════════════════════════════════════ */
+function syncRes(t) {
+  const c=parseInt(document.getElementById(`${t}-c`).value)||0;
+  const m=parseInt(document.getElementById(`${t}-m`).value)||1;
+  res[t]={c:Math.min(c,m),m};
+  updateAllBars();
+}
+function syncChance() {
+  res.chance=Math.max(0,Math.min(100,parseInt(document.getElementById('ch-v').value)||0));
+  document.getElementById('bar-ch').style.width=res.chance+'%';
+}
+function updateAllBars() {
+  ['pv','pf','pm'].forEach(t => {
+    const pct=res[t].m>0?Math.max(0,Math.min(100,(res[t].c/res[t].m)*100)):0;
+    document.getElementById('bar-'+t).style.width=pct+'%';
+    document.getElementById('val-'+t).textContent=`${res[t].c}/${res[t].m}`;
+    document.getElementById(`${t}-c`).value=res[t].c;
+    document.getElementById(`${t}-m`).value=res[t].m;
+  });
+  updatePmZone();
+}
+function updatePmZone() {
+  const zone = document.getElementById('pm-pf-zone');
+  const label = document.getElementById('pm-zone-label');
+  if (!zone || !label) return;
+  const pct = res.pm.m > 0 ? (res.pm.c / res.pm.m) : 1;
+  if (pct > 0.25) { zone.style.display='none'; return; }
+  zone.style.display='block';
+  if (res.pm.c === 0) { label.textContent='ROUGE — Peut forcer avec PF'; label.style.color='var(--danger)'; }
+  else { label.textContent='ORANGE — Réserve faible (-5 PF)'; label.style.color='var(--warning)'; }
+}
+
+/* ══════════════════════════════════════════
+   VÉRIFICATION BIDIRECTIONNELLE
+══════════════════════════════════════════ */
+function checkBidirectional() {
+  const alerts = [];
+  COMPS.forEach(c => {
+    if (c.v === 0 || !c.base) return;
+    c.base.forEach(attrKey => {
+      const attrVal = attrs[attrKey];
+      if (attrVal && c.v >= attrVal * 10) {
+        alerts.push(`📈 ${c.nom} (${c.v}) ≥ ${attrKey.toUpperCase()} (${attrVal}) × 10 → ${attrKey.toUpperCase()} devrait monter à ${attrVal+1} !`);
+      }
+    });
+  });
+  if (alerts.length > 0) {
+    addLog('⚡ Détection bidirectionnelle', alerts.join('\n'), alerts.map(() => ({type:'badge-sys', label:'ATTR ↑'})));
+  }
+}
+
+/* ══════════════════════════════════════════
+   SYSTEM PROMPT
+══════════════════════════════════════════ */
+function buildSystem() {
+  const attrStr = ATTRS.map(a => `${a.lbl}:${attrs[a.k]}`).join(' ');
+  const compAcq = COMPS.filter(c => c.v > 0).map(c => `${c.nom}(${c.v})`).join(' | ');
+  const compZero = COMPS.filter(c => c.v === 0 && c.magic).map(c => c.nom).join(', ');
+  const pmPct = res.pm.m > 0 ? Math.round(res.pm.c/res.pm.m*100) : 0;
+  const pmZone = res.pm.c === 0 ? 'ROUGE (peut forcer avec PF)' : pmPct <= 25 ? 'ORANGE (-5 PF)' : 'VERTE';
+
+  return `Tu es un moteur de règles JDR en mode TEST MÉCANIQUE PUR — système systémique complet.
+PAS de narration — uniquement analyse mécanique, formules, et conséquences sur la fiche.
+
+PERSONNAGE : ${document.getElementById('pc-nom').value}, ${document.getElementById('pc-age').value}ans, ${document.getElementById('pc-talent').value}
+PV: ${res.pv.c}/${res.pv.m} | PF: ${res.pf.c}/${res.pf.m} | PM: ${res.pm.c}/${res.pm.m} (Zone ${pmZone}) | Chance: ${res.chance}
+Attributs: ${attrStr}
+Compétences acquises: ${compAcq || 'aucune'}
+Maîtrises à 0 (aucun sort possible): ${compZero}
+
+═══════════════════════════════
+SYSTÈME SYSTÉMIQUE COMPLET — RÈGLES EXACTES
+═══════════════════════════════
+
+1. PROGRESSION COMPÉTENCES
+Physique/Mental/Social : Multiplicateur = (11 - AttributMoyen) ÷ 2
+  → Attribut bas = progresse VITE | Attribut haut = progresse LENTEMENT
+  Exemple : Persuasion (Cha4+Int5)÷2=4.5 → mult=(11-4.5)÷2=×3.25 (progresse vite)
+
+Magie UNIQUEMENT : Multiplicateur = (Intelligence + Affinité élément) ÷ 2 ÷ 2
+  → Affinité haute + Intelligence haute = progresse VITE
+  Exemple : Maîtrise Ombre (Int9+Aff9)÷2=9 → mult=9÷2=×4.5 (très vite)
+  Exemple : Maîtrise Ombre (Int5+Aff0)÷2=2.5 → mult=2.5÷2=×1.25 (très lentement)
+
+2. BIDIRECTIONNEL — COMP → ATTRIBUT
+Si Compétence ≥ AttributLié × 10 → AttributLié +1
+  Exemple : Combat Épée 60 avec Agilité 6 → Agilité monte à 7 !
+  Exemple : Persuasion 30 avec Charisme 3 → Charisme monte à 4 !
+  Pour la magie : Maîtrise ≥ Affinité × 15 ET sorts challengeants → Affinité +1
+
+3. MAGIE ↔ PHYSIQUE (système PM → PF)
+PM > 25% : Zone VERTE — normal
+PM ≤ 25% : Zone ORANGE — -5 PF fatigue mentale
+PM = 0   : Zone ROUGE — -20 PF, malus -10% mental, PEUT FORCER avec PF
+Forcer : Coût PF = Coût sort (si PM=0) ou Coût sort - PM restants
+Mage-Guerrier (PM60 + PF600) lance PLUS de sorts qu'un Mage Pur (PM90 + PF50) !
+
+4. AFFINITÉ MAGIQUE — RÈGLE ABSOLUE
+Affinité 0 = AUCUN sort possible, même dans un lieu magique
+Affinité 1-2 = Effets minimes non contrôlés
+Affinité 3-4 = Sorts mineurs stables
+Affinité 5-6 = Sorts de base utilitaires et offensifs
+Affinité 7-8 = Mage compétent, sorts puissants
+Affinité 9-10 = Maître absolu de l'élément
+
+5. FUSIONS ÉLÉMENTAIRES
+Débloquées quand Maîtrise éléments ≥ seuils :
+  Lave = Feu≥20 + Terre≥20 | Foudre = Feu≥25 + Vent≥25 | Glace = Eau≥20 + Vent≥20
+Pratiquer une fusion améliore les éléments de base (+15% bonus rétroactifs)
+
+6. PALIERS FATIGUE (PF)
+75-100% : Aucun malus | 50-74% : -10% efficacité | 25-49% : -25%
+1-24% : -50%, actions limitées | 0% : Évanouissement
+
+7. RÉFÉRENTIEL NARRATIF
+Compétences : 0=jamais pratiqué | 20=apprenti | 40=soldat | 60=expert | 80=maître | 100=dieu
+Attributs : 5=humain ordinaire | 7=au-dessus moyenne | 9=exceptionnel | 10=max humain
+Sorts dégâts : maîtrise 30→32dégâts | 50→316 | 70→3162 | 90→31623
+
+FORMAT RÉPONSE STRICT :
+1. ANALYSE: [formules appliquées, valeurs calculées]
+2. RÉSULTAT: [ce qui se passe mécaniquement]
+3. SIGNAUX: [codes à appliquer sur la fiche]
+
+SIGNAUX DISPONIBLES :
+HP:-X/HP:+X | PF:-X/PF:+X | PM:-X/PM:+X | PROG:Nom:+X
+ETAT:nom | CHANCE:+X | ATTR_UP:attribut (attribut monte de +1)
+PM_FORCE:X (X PM forcés → X PF dépensés) | FUSION_UNLOCK:nom
+
+Réponds en français, factuel, court.`;
+}
+
+/* ══════════════════════════════════════════
    SEND ACTION
-════════════════════════════════════════ */
+══════════════════════════════════════════ */
 async function sendAction() {
   if (!apiKey) { alert('Clé API manquante !'); return; }
-  const input = document.getElementById('action-input');
-  const action = input.value.trim();
-  if (!action) return;
-
+  const input = document.getElementById('act-inp');
+  const action = input.value.trim(); if (!action) return;
   input.value = '';
   document.getElementById('send-btn').disabled = true;
 
-  // Dé
-  const dieMode = document.getElementById('die-mode').value;
+  const dieMode = document.getElementById('die-sel').value;
   const de20 = dieMode === 'auto' ? Math.floor(Math.random()*20)+1 : parseInt(dieMode);
-  const mode = document.getElementById('test-mode').value;
+  const fullAction = `${action} [DÉ D20: ${de20}${de20===20?' CRITIQUE':de20===1?' FUMBLE':''}]`;
 
-  // Entrée log
   const entry = document.createElement('div');
   entry.className = 'log-entry';
-  const time = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const time = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   entry.innerHTML = `
-    <div class="log-action">
-      <span>▶ ${esc(action)} <span style="color:var(--text-hint);font-size:10px;">[dé:${de20}][${mode}]</span></span>
-      <span class="log-time">${time}</span>
+    <div class="log-hdr">
+      <span class="log-action-txt">▶ ${esc(action)}</span>
+      <span class="log-meta">[d${de20}] ${time}</span>
     </div>
-    <div class="log-loading"><span class="dots"><span>.</span><span>.</span><span>.</span></span> Analyse en cours</div>`;
+    <div class="log-loading"><span class="dots"><span>.</span><span>.</span><span>.</span></span> Calcul mécanique...</div>`;
   document.getElementById('test-log').appendChild(entry);
   document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
 
-  const fullAction = `${action} [DÉ D20: ${de20}${de20===20?' — CRITIQUE':de20===1?' — FUMBLE':''}]`;
-
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:500, system: buildSystemPrompt(), messages:[{role:'user',content:fullAction}] })
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,system:buildSystem(),messages:[{role:'user',content:fullAction}]})
     });
-
     const d = await r.json();
-    const text = d.content?.find(b => b.type==='text')?.text || '';
-
-    // Parser et appliquer les signaux
+    const text = d.content?.find(b=>b.type==='text')?.text || '';
     const changes = parseSignals(text);
-
-    // Afficher
     const loading = entry.querySelector('.log-loading');
-    loading.remove();
-
-    const cleanText = text
-      .replace(/HP:[+-]\d+/gi,'').replace(/PF:[+-]\d+/gi,'').replace(/PM:[+-]\d+/gi,'')
-      .replace(/PROG:[^:\n]+:[+-][0-9.]+/gi,'').replace(/ETAT:\w+/gi,'').replace(/CHANCE:\+\d+/gi,'')
-      .trim();
-
-    entry.innerHTML += `<div class="log-response">${esc(cleanText)}</div>`;
-
+    loading.outerHTML = `<div class="log-body">${esc(cleanText(text))}</div>`;
     if (changes.length > 0) {
-      const badgesHtml = changes.map(c => `<span class="change-badge ${c.type}">${c.label}</span>`).join('');
+      const badgesHtml = changes.map(c=>`<span class="badge ${c.type}">${c.label}</span>`).join('');
       entry.innerHTML += `<div class="log-changes">${badgesHtml}</div>`;
     }
-
     document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
-
   } catch(e) {
-    const loading = entry.querySelector('.log-loading');
-    loading.textContent = '✗ Erreur : ' + e.message;
-    loading.style.color = 'var(--danger)';
+    entry.querySelector('.log-loading').textContent = '✗ Erreur: '+e.message;
   }
-
   document.getElementById('send-btn').disabled = false;
-  input.focus();
+  document.getElementById('act-inp').focus();
+}
+
+function cleanText(text) {
+  return text
+    .replace(/HP:[+-]\d+/gi,'').replace(/PF:[+-]\d+/gi,'').replace(/PM:[+-]\d+/gi,'')
+    .replace(/PROG:[^:\n]+:[+-][0-9.]+/gi,'').replace(/ETAT:\w+/gi,'').replace(/CHANCE:\+\d+/gi,'')
+    .replace(/ATTR_UP:\w+/gi,'').replace(/PM_FORCE:\d+/gi,'').replace(/FUSION_UNLOCK:\S+/gi,'')
+    .trim();
 }
 
 function parseSignals(text) {
   const changes = [];
 
-  // HP
-  text.replace(/HP:([+-]\d+)/gi, (_, d) => {
-    const v = parseInt(d);
-    pc.pv.cur = Math.max(0, Math.min(pc.pv.max, pc.pv.cur + v));
-    updateBarDisplay('pv');
-    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PV ${v > 0 ? '+' : ''}${v} → ${pc.pv.cur}/${pc.pv.max}` });
+  text.replace(/HP:([+-]\d+)/gi,(_,d)=>{
+    const v=parseInt(d); res.pv.c=Math.max(0,Math.min(res.pv.m,res.pv.c+v));
+    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PV${v>0?'+':''}${v}→${res.pv.c}`});
   });
-
-  // PF
-  text.replace(/PF:([+-]\d+)/gi, (_, d) => {
-    const v = parseInt(d);
-    pc.pf.cur = Math.max(0, Math.min(pc.pf.max, pc.pf.cur + v));
-    updateBarDisplay('pf');
-    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PF ${v > 0 ? '+' : ''}${v} → ${pc.pf.cur}/${pc.pf.max}` });
+  text.replace(/PF:([+-]\d+)/gi,(_,d)=>{
+    const v=parseInt(d); res.pf.c=Math.max(0,Math.min(res.pf.m,res.pf.c+v));
+    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PF${v>0?'+':''}${v}→${res.pf.c}`});
   });
-
-  // PM
-  text.replace(/PM:([+-]\d+)/gi, (_, d) => {
-    const v = parseInt(d);
-    pc.pm.cur = Math.max(0, Math.min(pc.pm.max, pc.pm.cur + v));
-    updateBarDisplay('pm');
-    changes.push({ type: v > 0 ? 'badge-up' : 'badge-down', label: `PM ${v > 0 ? '+' : ''}${v} → ${pc.pm.cur}/${pc.pm.max}` });
+  text.replace(/PM:([+-]\d+)/gi,(_,d)=>{
+    const v=parseInt(d); res.pm.c=Math.max(0,Math.min(res.pm.m,res.pm.c+v));
+    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PM${v>0?'+':''}${v}→${res.pm.c}`});
   });
-
-  // PROG
-  text.replace(/PROG:([^:\n]+):\+([0-9.]+)/gi, (_, nom, gain) => {
-    const g = parseFloat(gain);
-    const comp = pc.competences.find(c => c.nom.toLowerCase() === nom.trim().toLowerCase());
-    if (comp) {
-      const old = comp.val;
-      comp.val = Math.min(100, Math.round((comp.val + g) * 10) / 10);
-      changes.push({ type: 'badge-new', label: `${nom.trim()} ${old}→${comp.val}` });
-      renderComps(currentCat);
-      // Flash
-      setTimeout(() => {
-        const row = document.getElementById('cr-' + esc(nom.trim()));
-        if (row) { row.classList.add('changed'); setTimeout(() => row.classList.remove('changed'), 3000); }
-      }, 100);
-    } else {
-      changes.push({ type: 'badge-neutral', label: `PROG: ${nom.trim()} introuvable` });
+  text.replace(/PM_FORCE:(\d+)/gi,(_,v)=>{
+    const pf=parseInt(v); res.pf.c=Math.max(0,res.pf.c-pf);
+    updateAllBars(); changes.push({type:'badge-sys',label:`FORCE ${pf}PM→${pf}PF`});
+  });
+  text.replace(/PROG:([^:\n]+):\+([0-9.]+)/gi,(_,nom,gain)=>{
+    const g=parseFloat(gain); const c=COMPS.find(x=>x.nom.toLowerCase()===nom.trim().toLowerCase());
+    if(c){ const old=c.v; c.v=Math.min(100,Math.round((c.v+g)*10)/10); renderComps(currentCat);
+      changes.push({type:'badge-new',label:`${nom.trim()} ${old}→${c.v}`});
+      const row=document.getElementById('cr-'+esc(nom.trim()));
+      if(row){row.classList.add('changed');setTimeout(()=>row.classList.remove('changed'),3000);}
+      checkBidirectional();
     }
   });
-
-  // ETAT
-  text.replace(/ETAT:(\w+)/gi, (_, e) => {
-    changes.push({ type: 'badge-neutral', label: `État: ${e}` });
+  text.replace(/ATTR_UP:(\w+)/gi,(_,attrKey)=>{
+    if(attrs.hasOwnProperty(attrKey)){
+      const old=attrs[attrKey]; attrs[attrKey]=Math.min(10,attrs[attrKey]+1);
+      const el=document.querySelector(`#ac-${attrKey} .attr-val`);
+      if(el){el.textContent=attrs[attrKey]; document.getElementById('ac-'+attrKey).classList.add('changed'); setTimeout(()=>document.getElementById('ac-'+attrKey).classList.remove('changed'),600);}
+      changes.push({type:'badge-sys',label:`${attrKey.toUpperCase()} ${old}→${attrs[attrKey]} ↑`});
+    }
   });
-
-  // CHANCE
-  text.replace(/CHANCE:\+(\d+)/gi, (_, v) => {
-    pc.chance = Math.min(100, pc.chance + parseInt(v));
-    document.getElementById('bar-chance').style.width = pc.chance + '%';
-    document.getElementById('val-chance').textContent = pc.chance;
-    changes.push({ type: 'badge-up', label: `Chance +${v} → ${pc.chance}` });
+  text.replace(/FUSION_UNLOCK:(\S+)/gi,(_,nom)=>{
+    const c=COMPS.find(x=>x.nom.toLowerCase().includes(nom.toLowerCase()));
+    if(c&&c.v===0){c.v=5; renderComps(currentCat);}
+    changes.push({type:'badge-sys',label:`FUSION: ${nom} débloquée !`});
   });
-
+  text.replace(/ETAT:(\w+)/gi,(_,e)=>{ changes.push({type:'badge-warn',label:`État: ${e}`}); });
+  text.replace(/CHANCE:\+(\d+)/gi,(_,v)=>{
+    res.chance=Math.min(100,res.chance+parseInt(v));
+    document.getElementById('bar-ch').style.width=res.chance+'%';
+    document.getElementById('ch-v').value=res.chance;
+    changes.push({type:'badge-up',label:`Chance+${v}→${res.chance}`});
+  });
   return changes;
 }
 
-function updateBarDisplay(type) {
-  const pct = pc[type].max > 0 ? Math.max(0, Math.min(100, (pc[type].cur / pc[type].max) * 100)) : 0;
-  document.getElementById(`bar-${type}`).style.width = pct + '%';
-  document.getElementById(`val-${type}`).textContent = `${pc[type].cur}/${pc[type].max}`;
-  document.getElementById(`${type}-cur`).value = pc[type].cur;
+function addLog(action, body, changes) {
+  const entry=document.createElement('div'); entry.className='log-entry';
+  const badgesHtml=changes.map(c=>`<span class="badge ${c.type}">${c.label}</span>`).join('');
+  entry.innerHTML=`<div class="log-hdr"><span class="log-action-txt">${esc(action)}</span></div>
+    ${body?`<div class="log-body">${esc(body)}</div>`:''}
+    ${changes.length?`<div class="log-changes">${badgesHtml}</div>`:''}`;
+  document.getElementById('test-log').appendChild(entry);
+  document.getElementById('test-log').scrollTop=document.getElementById('test-log').scrollHeight;
 }
 
-function clearLog() {
-  document.getElementById('test-log').innerHTML = '<div style="color:var(--text-hint);font-family:\'JetBrains Mono\',monospace;font-size:11px;text-align:center;padding:40px;">Log effacé.</div>';
-}
-
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clearLog() { document.getElementById('test-log').innerHTML='<div style="color:var(--hint);font-family:\'JetBrains Mono\',monospace;font-size:11px;text-align:center;padding:40px;">Log effacé.</div>'; }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
 </html>
