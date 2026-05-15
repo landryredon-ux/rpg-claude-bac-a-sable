@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RPG Sandbox v2 — Test Système Systémique</title>
+  <title>RPG Sandbox v3 — Test Systémique</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +16,7 @@
       --magic: #A060FF; --physical: #FF8040;
     }
     html, body { min-height:100vh; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; }
-    body { display:grid; grid-template-rows:48px 1fr; grid-template-columns:360px 1fr; height:100vh; overflow:hidden; }
+    body { display:grid; grid-template-rows:48px 1fr; grid-template-columns:340px 1fr; height:100vh; overflow:hidden; }
 
     /* HEADER */
     .hdr { grid-column:1/-1; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; }
@@ -24,100 +24,117 @@
     .hdr-right { display:flex; align-items:center; gap:8px; }
     .api-inp { font-family:'JetBrains Mono',monospace; font-size:11px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:5px 10px; width:240px; }
     .api-inp:focus { outline:none; border-color:var(--accent); }
-    .btn-sm { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--accent); color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
+    .btn-sm { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--accent); color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer; }
     .btn-sm:hover { background:#7070FF; }
     .api-st { font-size:10px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
     .api-st.ok { color:var(--success); } .api-st.err { color:var(--danger); }
 
-    /* LEFT PANEL */
-    .left { background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; display:flex; flex-direction:column; }
-    .panel-tabs { display:flex; border-bottom:1px solid var(--border); }
-    .tab { flex:1; font-family:'JetBrains Mono',monospace; font-size:10px; padding:8px; text-align:center; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; transition:all 0.15s; letter-spacing:1px; }
-    .tab.active { color:var(--accent2); border-bottom-color:var(--accent2); }
-    .tab-content { display:none; padding:12px; flex:1; }
-    .tab-content.active { display:block; }
+    /* LEFT — FICHE */
+    .left { background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px; }
 
-    /* SECTIONS */
-    .sec { margin-bottom:14px; }
-    .sec-title { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:var(--accent2); letter-spacing:2px; text-transform:uppercase; padding-bottom:5px; border-bottom:1px solid var(--border); margin-bottom:8px; }
+    .sec-title { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; color:var(--accent2); letter-spacing:2px; text-transform:uppercase; padding-bottom:4px; border-bottom:1px solid var(--border); margin-bottom:8px; }
 
-    /* ATTRIBUTS GRID */
-    .attrs-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
-    .attr-cell { background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:5px; text-align:center; cursor:pointer; transition:border-color 0.15s; }
+    /* Identité */
+    .id-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+    .id-field { display:flex; flex-direction:column; gap:2px; }
+    .id-lbl { font-size:9px; color:var(--muted); font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .id-inp { font-family:'JetBrains Mono',monospace; font-size:12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px 8px; width:100%; }
+    .id-inp:focus { outline:none; border-color:var(--accent); }
+
+    /* Ressources */
+    .res-list { display:flex; flex-direction:column; gap:5px; }
+    .res-row { display:flex; align-items:center; gap:6px; }
+    .res-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); width:25px; }
+    .bar-bg { flex:1; height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
+    .bar-fill { height:100%; border-radius:3px; transition:width 0.4s; }
+    .bar-pv{background:var(--danger);} .bar-pf{background:var(--warning);} .bar-pm{background:var(--magic);}
+    .res-val { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text); min-width:60px; text-align:right; }
+    .res-edit { display:flex; gap:3px; margin-top:2px; }
+    .res-num { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:2px 5px; width:52px; }
+    .res-num:focus { outline:none; border-color:var(--accent); }
+
+    /* Attributs */
+    .attrs-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:3px; }
+    .attr-cell { background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:4px 3px; text-align:center; cursor:pointer; transition:border-color 0.15s; }
     .attr-cell:hover { border-color:var(--accent); }
     .attr-cell.physical { border-left:2px solid var(--physical); }
     .attr-cell.mental { border-left:2px solid var(--accent2); }
     .attr-cell.magic { border-left:2px solid var(--magic); }
-    .attr-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
-    .attr-val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; color:var(--accent2); line-height:1.2; }
-    .attr-cell.changed { animation:flash 0.5s ease; }
-    @keyframes flash { 0%,100%{background:var(--surface2)} 50%{background:rgba(64,208,128,0.2)} }
+    .attr-lbl { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted); }
+    .attr-val { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; color:var(--accent2); line-height:1.2; }
+    .attr-cell.flash { animation:flash 0.6s ease; }
+    @keyframes flash { 0%,100%{background:var(--surface2)} 50%{background:rgba(64,208,128,0.25)} }
 
-    /* RESSOURCES */
-    .res-list { display:flex; flex-direction:column; gap:6px; }
-    .res-row { display:flex; align-items:center; gap:6px; }
-    .res-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); width:28px; }
-    .bar-bg { flex:1; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
-    .bar-fill { height:100%; border-radius:3px; transition:width 0.4s; }
-    .bar-pv { background:var(--danger); } .bar-pf { background:var(--warning); }
-    .bar-pm { background:var(--magic); } .bar-chance { background:var(--gold); }
-    .res-val { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text); min-width:65px; text-align:right; }
-    .res-inputs { display:flex; gap:4px; margin-top:2px; }
-    .res-num { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:3px; padding:3px 5px; width:55px; }
-    .res-num:focus { outline:none; border-color:var(--accent); }
-
-    /* COMP LIST */
-    .comp-filter { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:6px; }
+    /* Compétences */
+    .comp-filter { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:5px; }
     .cf-btn { font-family:'JetBrains Mono',monospace; font-size:9px; padding:2px 6px; border-radius:3px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; transition:all 0.15s; }
     .cf-btn.active { border-color:var(--accent); color:var(--accent2); background:rgba(96,96,255,0.1); }
-    .comp-list { display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; }
-    .comp-row { display:flex; align-items:center; gap:5px; padding:2px 5px; border-radius:3px; border:1px solid transparent; cursor:pointer; }
+    .comp-list { display:flex; flex-direction:column; gap:2px; max-height:260px; overflow-y:auto; }
+    .comp-row { display:flex; align-items:center; gap:4px; padding:2px 5px; border-radius:3px; border:1px solid transparent; cursor:pointer; transition:all 0.15s; }
     .comp-row:hover { background:var(--surface2); border-color:var(--border); }
-    .comp-row.changed { border-color:var(--success); background:rgba(64,208,128,0.07); }
-    .comp-name { flex:1; font-size:11px; color:var(--muted); }
+    .comp-row.highlight { border-color:var(--accent2); background:rgba(64,192,255,0.07); }
+    .comp-row.upgraded { border-color:var(--success); background:rgba(64,208,128,0.07); animation:pulse 0.5s ease; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .comp-name { flex:1; font-size:11px; }
+    .comp-name.zero { color:var(--hint); }
+    .comp-name.low { color:var(--muted); }
     .comp-name.hi { color:var(--text); }
-    .comp-bar { width:35px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
-    .comp-fill { height:100%; border-radius:2px; }
-    .comp-val { font-family:'JetBrains Mono',monospace; font-size:11px; min-width:25px; text-align:right; }
+    .comp-diff { font-family:'JetBrains Mono',monospace; font-size:9px; padding:1px 5px; border-radius:2px; white-space:nowrap; }
+    .diff-extreme  { background:rgba(255,64,96,0.2);  color:var(--danger);  }
+    .diff-difficile{ background:rgba(255,176,64,0.2); color:var(--warning); }
+    .diff-normal   { background:rgba(64,192,255,0.2); color:var(--accent2); }
+    .diff-facile   { background:rgba(64,208,128,0.2); color:var(--success); }
+    .diff-tres_facile { background:rgba(128,128,160,0.2); color:var(--muted); }
+    .comp-bar { width:32px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+    .comp-fill { height:100%; border-radius:2px; transition:width 0.4s; }
+    .comp-val { font-family:'JetBrains Mono',monospace; font-size:11px; min-width:24px; text-align:right; cursor:pointer; }
 
-    /* BOUCLES SYSTÉMIQUES */
-    .loops-list { display:flex; flex-direction:column; gap:8px; }
-    .loop-card { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; transition:border-color 0.15s; }
-    .loop-card:hover { border-color:var(--accent); }
-    .loop-card.active-loop { border-color:var(--success); background:rgba(64,208,128,0.05); }
-    .loop-title { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:var(--accent2); margin-bottom:4px; }
-    .loop-desc { font-size:11px; color:var(--muted); line-height:1.5; }
-    .loop-test-btn { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--success); background:rgba(64,208,128,0.1); border:1px solid rgba(64,208,128,0.3); border-radius:3px; padding:3px 8px; cursor:pointer; margin-top:6px; display:inline-block; }
-    .loop-test-btn:hover { background:rgba(64,208,128,0.2); }
-
-    /* RIGHT PANEL */
+    /* RIGHT — TEST */
     .right { display:flex; flex-direction:column; overflow:hidden; }
     .right-toolbar { background:var(--surface); border-bottom:1px solid var(--border); padding:8px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .tb-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
+    .tb-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:1px; }
     .tb-select { font-family:'JetBrains Mono',monospace; font-size:10px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px 8px; cursor:pointer; }
-    .tb-btn { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:4px; padding:4px 8px; cursor:pointer; }
-    .tb-btn:hover { border-color:var(--danger); color:var(--danger); }
-    .tb-btn.preset { border-color:var(--accent); color:var(--accent2); }
-    .tb-btn.preset:hover { background:rgba(96,96,255,0.1); }
+    .tb-btn { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:4px; padding:4px 8px; cursor:pointer; transition:all 0.15s; }
+    .tb-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+    .tb-btn.danger:hover { border-color:var(--danger); color:var(--danger); }
 
     /* LOG */
-    .test-log { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+    .test-log { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; font-family:'JetBrains Mono',monospace; }
     .log-entry { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-    .log-hdr { background:var(--surface2); padding:7px 10px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
-    .log-action-txt { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent2); }
-    .log-meta { font-size:10px; color:var(--hint); font-family:'JetBrains Mono',monospace; }
-    .log-body { padding:8px 10px; font-size:12px; line-height:1.6; color:var(--muted); font-family:'JetBrains Mono',monospace; white-space:pre-wrap; }
-    .log-changes { padding:6px 10px; background:rgba(64,208,128,0.05); border-top:1px solid rgba(64,208,128,0.15); display:flex; flex-wrap:wrap; gap:5px; }
-    .badge { font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 7px; border-radius:3px; font-weight:600; }
-    .badge-up { background:rgba(64,208,128,0.15); color:var(--success); border:1px solid rgba(64,208,128,0.3); }
-    .badge-dn { background:rgba(255,64,96,0.15); color:var(--danger); border:1px solid rgba(255,64,96,0.3); }
-    .badge-new { background:rgba(96,96,255,0.15); color:var(--accent2); border:1px solid rgba(96,96,255,0.3); }
-    .badge-warn { background:rgba(255,176,64,0.15); color:var(--warning); border:1px solid rgba(255,176,64,0.3); }
-    .badge-sys { background:rgba(160,96,255,0.15); color:var(--magic); border:1px solid rgba(160,96,255,0.3); }
-    .log-loading { padding:8px 10px; color:var(--hint); font-family:'JetBrains Mono',monospace; font-size:11px; }
+    .log-entry.coherent { border-color:rgba(64,208,128,0.4); }
+    .log-entry.incoherent { border-color:rgba(255,64,96,0.4); }
+    .log-hdr { background:var(--surface2); padding:7px 12px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+    .log-action { font-size:12px; color:var(--accent2); }
+    .log-meta { font-size:10px; color:var(--hint); }
+
+    /* Résultat structuré */
+    .log-result { padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+    .result-row { display:flex; align-items:center; gap:8px; font-size:11px; }
+    .result-key { color:var(--muted); min-width:100px; }
+    .result-val { color:var(--text); }
+    .result-val.ok { color:var(--success); }
+    .result-val.ko { color:var(--danger); }
+    .result-divider { border:none; border-top:1px solid var(--border); margin:4px 0; }
+
+    /* Calcul détaillé */
+    .log-calc { padding:8px 12px; background:rgba(96,96,255,0.05); border-top:1px solid var(--border); font-size:11px; line-height:2; color:var(--muted); }
+    .calc-line { display:flex; align-items:center; gap:8px; }
+    .calc-label { color:var(--muted); flex:1; }
+    .calc-val { color:var(--accent2); min-width:60px; text-align:right; }
+    .calc-total { color:var(--gold); font-weight:700; }
+    .calc-result { color:var(--success); font-weight:700; }
+
+    /* Badges changements */
+    .log-changes { padding:6px 12px; background:rgba(64,208,128,0.04); border-top:1px solid rgba(64,208,128,0.15); display:flex; flex-wrap:wrap; gap:5px; }
+    .badge { font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 8px; border-radius:3px; font-weight:600; }
+    .badge-up   { background:rgba(64,208,128,0.15); color:var(--success); border:1px solid rgba(64,208,128,0.3); }
+    .badge-dn   { background:rgba(255,64,96,0.15);  color:var(--danger);  border:1px solid rgba(255,64,96,0.3); }
+    .badge-attr { background:rgba(160,96,255,0.15); color:var(--magic);   border:1px solid rgba(160,96,255,0.3); }
+    .badge-ko   { background:rgba(255,64,96,0.1);   color:var(--danger);  border:1px solid rgba(255,64,96,0.2); }
+
+    .log-loading { padding:10px 12px; color:var(--hint); font-size:11px; }
     .dots span { animation:blink 1s infinite; color:var(--accent); }
-    .dots span:nth-child(2) { animation-delay:0.2s; }
-    .dots span:nth-child(3) { animation-delay:0.4s; }
+    .dots span:nth-child(2){animation-delay:0.2s;} .dots span:nth-child(3){animation-delay:0.4s;}
     @keyframes blink { 0%,60%,100%{opacity:0.2} 30%{opacity:1} }
 
     /* INPUT */
@@ -129,17 +146,17 @@
     .send-btn { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; background:var(--accent); color:white; border:none; border-radius:6px; padding:9px 16px; cursor:pointer; white-space:nowrap; }
     .send-btn:hover { background:#7070FF; }
     .send-btn:disabled { opacity:0.4; cursor:default; }
-    .inp-hint { font-size:10px; color:var(--hint); margin-top:5px; font-family:'JetBrains Mono',monospace; }
+    .inp-hint { font-size:10px; color:var(--hint); margin-top:5px; }
 
-    ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-    .hidden { display:none; }
+    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .hidden{display:none;}
   </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-title">RPG SANDBOX v2 — SYSTÈME SYSTÉMIQUE</div>
+  <div class="hdr-title">RPG SANDBOX v3 — CALCUL SYSTÉMIQUE</div>
   <div class="hdr-right">
     <input id="api-inp" class="api-inp" type="password" placeholder="sk-ant-api03-..." />
     <button class="btn-sm" onclick="saveApi()">Connecter</button>
@@ -147,103 +164,86 @@
   </div>
 </header>
 
-<!-- LEFT PANEL -->
+<!-- FICHE PERSONNAGE -->
 <aside class="left">
-  <div class="panel-tabs">
-    <div class="tab active" onclick="showTab('attrs')">FICHE</div>
-    <div class="tab" onclick="showTab('comps')">COMP.</div>
-    <div class="tab" onclick="showTab('loops')">BOUCLES</div>
-  </div>
 
-  <!-- FICHE -->
-  <div id="tab-attrs" class="tab-content active">
-
-    <!-- Identité rapide -->
-    <div class="sec">
-      <div class="sec-title">Identité</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-        <div>
-          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">NOM</div>
-          <input id="pc-nom" class="api-inp" style="width:100%;font-size:11px;" type="text" value="Test" />
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">ÂGE</div>
-          <input id="pc-age" class="api-inp" style="width:100%;font-size:11px;" type="number" value="17" />
-        </div>
-        <div style="grid-column:1/-1;">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">TALENT</div>
-          <select id="pc-talent" class="api-inp" style="width:100%;font-size:11px;">
-            <option value="Normal ×1.0">Normal ×1.0</option>
-            <option value="Doué ×1.5">Doué ×1.5</option>
-            <option value="Très doué ×2.0">Très doué ×2.0</option>
-            <option value="Prodige ×2.5" selected>Prodige ×2.5</option>
-            <option value="Légende ×3.0">Légende ×3.0</option>
-          </select>
-        </div>
+  <!-- Identité -->
+  <div>
+    <div class="sec-title">Identité</div>
+    <div class="id-grid">
+      <div class="id-field" style="grid-column:1/-1;">
+        <div class="id-lbl">NOM</div>
+        <input class="id-inp" id="pc-nom" type="text" value="Ladix" />
+      </div>
+      <div class="id-field">
+        <div class="id-lbl">ÂGE</div>
+        <input class="id-inp" id="pc-age" type="number" value="17" />
+      </div>
+      <div class="id-field">
+        <div class="id-lbl">TALENT</div>
+        <select class="id-inp" id="pc-talent" style="font-size:10px;">
+          <option value="1.0">Normal ×1.0</option>
+          <option value="1.5">Doué ×1.5</option>
+          <option value="2.0">Très doué ×2.0</option>
+          <option value="2.5" selected>Prodige ×2.5</option>
+          <option value="3.0">Légende ×3.0</option>
+        </select>
       </div>
     </div>
+  </div>
 
-    <!-- Ressources -->
-    <div class="sec">
-      <div class="sec-title">Ressources</div>
-      <div class="res-list">
-        <div>
-          <div class="res-row">
-            <span class="res-lbl">PV</span>
-            <div class="bar-bg"><div class="bar-fill bar-pv" id="bar-pv" style="width:100%"></div></div>
-            <span class="res-val" id="val-pv">650/650</span>
-          </div>
-          <div class="res-inputs">
-            <input class="res-num" id="pv-c" type="number" value="650" onchange="syncRes('pv')" />
-            <span style="color:var(--hint);align-self:center;">/</span>
-            <input class="res-num" id="pv-m" type="number" value="650" onchange="syncRes('pv')" />
-          </div>
-        </div>
-        <div>
-          <div class="res-row">
-            <span class="res-lbl">PF</span>
-            <div class="bar-bg"><div class="bar-fill bar-pf" id="bar-pf" style="width:100%"></div></div>
-            <span class="res-val" id="val-pf">600/600</span>
-          </div>
-          <div class="res-inputs">
-            <input class="res-num" id="pf-c" type="number" value="600" onchange="syncRes('pf')" />
-            <span style="color:var(--hint);align-self:center;">/</span>
-            <input class="res-num" id="pf-m" type="number" value="600" onchange="syncRes('pf')" />
-          </div>
-        </div>
-        <div>
-          <div class="res-row">
-            <span class="res-lbl">PM</span>
-            <div class="bar-bg"><div class="bar-fill bar-pm" id="bar-pm" style="width:100%"></div></div>
-            <span class="res-val" id="val-pm">50/50</span>
-          </div>
-          <div class="res-inputs">
-            <input class="res-num" id="pm-c" type="number" value="50" onchange="syncRes('pm')" />
-            <span style="color:var(--hint);align-self:center;">/</span>
-            <input class="res-num" id="pm-m" type="number" value="50" onchange="syncRes('pm')" />
-          </div>
-        </div>
+  <!-- Ressources -->
+  <div>
+    <div class="sec-title">Ressources</div>
+    <div class="res-list">
+      <div>
         <div class="res-row">
-          <span class="res-lbl">☆</span>
-          <div class="bar-bg"><div class="bar-fill bar-chance" id="bar-ch" style="width:10%"></div></div>
-          <input class="res-num" id="ch-v" type="number" value="10" min="0" max="100" onchange="syncChance()" style="margin-left:auto;" />
+          <span class="res-lbl">PV</span>
+          <div class="bar-bg"><div class="bar-fill bar-pv" id="bar-pv" style="width:100%"></div></div>
+          <span class="res-val" id="val-pv">750/750</span>
         </div>
-        <!-- Zone PM → PF indicator -->
-        <div id="pm-pf-zone" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);display:none;">
-          ⚡ ZONE: <span id="pm-zone-label">VERTE</span>
+        <div class="res-edit">
+          <input class="res-num" id="pv-c" type="number" value="750" onchange="syncRes('pv')" />
+          <span style="color:var(--hint);align-self:center;font-size:10px;">/</span>
+          <input class="res-num" id="pv-m" type="number" value="750" onchange="syncRes('pv')" />
+        </div>
+      </div>
+      <div>
+        <div class="res-row">
+          <span class="res-lbl">PF</span>
+          <div class="bar-bg"><div class="bar-fill bar-pf" id="bar-pf" style="width:100%"></div></div>
+          <span class="res-val" id="val-pf">600/600</span>
+        </div>
+        <div class="res-edit">
+          <input class="res-num" id="pf-c" type="number" value="600" onchange="syncRes('pf')" />
+          <span style="color:var(--hint);align-self:center;font-size:10px;">/</span>
+          <input class="res-num" id="pf-m" type="number" value="600" onchange="syncRes('pf')" />
+        </div>
+      </div>
+      <div>
+        <div class="res-row">
+          <span class="res-lbl">PM</span>
+          <div class="bar-bg"><div class="bar-fill bar-pm" id="bar-pm" style="width:100%"></div></div>
+          <span class="res-val" id="val-pm">80/80</span>
+        </div>
+        <div class="res-edit">
+          <input class="res-num" id="pm-c" type="number" value="80" onchange="syncRes('pm')" />
+          <span style="color:var(--hint);align-self:center;font-size:10px;">/</span>
+          <input class="res-num" id="pm-m" type="number" value="80" onchange="syncRes('pm')" />
         </div>
       </div>
     </div>
-
-    <!-- Attributs -->
-    <div class="sec">
-      <div class="sec-title">Attributs <span style="font-size:8px;color:var(--hint)">(clic = modifier)</span></div>
-      <div class="attrs-grid" id="attrs-grid"></div>
-    </div>
   </div>
 
-  <!-- COMPÉTENCES -->
-  <div id="tab-comps" class="tab-content">
+  <!-- Attributs -->
+  <div>
+    <div class="sec-title">Attributs <span style="font-size:8px;color:var(--hint)">(clic = modifier)</span></div>
+    <div class="attrs-grid" id="attrs-grid"></div>
+  </div>
+
+  <!-- Compétences -->
+  <div>
+    <div class="sec-title">Compétences</div>
     <div class="comp-filter">
       <button class="cf-btn active" onclick="filterC('all',this)">Tout</button>
       <button class="cf-btn" onclick="filterC('⚔',this)">⚔</button>
@@ -259,307 +259,531 @@
     <div class="comp-list" id="comp-list"></div>
   </div>
 
-  <!-- BOUCLES SYSTÉMIQUES -->
-  <div id="tab-loops" class="tab-content">
-    <div class="sec-title">6 Boucles systémiques</div>
-    <div class="loops-list" id="loops-list"></div>
-  </div>
 </aside>
 
-<!-- RIGHT PANEL -->
+<!-- ZONE TEST -->
 <main class="right">
   <div class="right-toolbar">
-    <span class="tb-label">MODE</span>
-    <select class="tb-select" id="test-mode">
-      <option value="libre" selected>🎲 Libre</option>
-      <option value="combat">⚔ Combat</option>
-      <option value="magie">🔮 Magie</option>
-      <option value="social">💬 Social</option>
-      <option value="progression">📈 Progression</option>
-    </select>
-    <span class="tb-label">DÉ</span>
-    <select class="tb-select" id="die-sel">
-      <option value="auto" selected>Auto</option>
-      <option value="20">Forcer 20</option>
-      <option value="1">Forcer 1</option>
-      <option value="10">Moyen 10</option>
-    </select>
-    <button class="tb-btn preset" onclick="loadPreset('mage_pur')">Preset: Mage Pur</button>
-    <button class="tb-btn preset" onclick="loadPreset('mage_guerrier')">Preset: Mage-Guerrier</button>
-    <button class="tb-btn preset" onclick="loadPreset('guerrier')">Preset: Guerrier</button>
-    <button class="tb-btn preset" onclick="loadPreset('ladix')">Preset: Ladix</button>
-    <button class="tb-btn" onclick="clearLog()" style="margin-left:auto;">Effacer</button>
+    <span class="tb-lbl">PRESET</span>
+    <button class="tb-btn" onclick="loadPreset('ladix')">Ladix</button>
+    <button class="tb-btn" onclick="loadPreset('guerrier')">Guerrier</button>
+    <button class="tb-btn" onclick="loadPreset('mage')">Mage Pur</button>
+    <button class="tb-btn" onclick="loadPreset('mage_guerrier')">Mage-Guerrier</button>
+    <button class="tb-btn danger" onclick="clearLog()" style="margin-left:auto;">Effacer log</button>
   </div>
 
   <div class="test-log" id="test-log">
-    <div style="color:var(--hint);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:40px 20px;line-height:2;">
-      Bac à sable — Test système systémique complet<br/>
-      Clique sur une boucle systémique → test automatique<br/>
-      Ou tape une action libre ci-dessous
+    <div style="color:var(--hint);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:40px 20px;line-height:2.2;">
+      Le site calcule tout — Claude identifie uniquement<br/>
+      la compétence utilisée et vérifie la cohérence.<br/><br/>
+      <span style="color:var(--surface3)">────────────────────────────────</span><br/>
+      Tape une action ci-dessous pour tester
     </div>
   </div>
 
   <div class="input-zone">
     <div class="inp-row">
-      <input id="act-inp" class="act-inp" type="text" placeholder="Action à tester... ex: Je frappe avec mon épée / Je lance Maîtrise Ombre / Je persuade le garde" />
+      <input id="act-inp" class="act-inp" type="text"
+        placeholder="Décris une action... ex: Ladix médite dans l'obscurité / Je frappe avec mon épée / Je tente de persuader le garde" />
       <button id="send-btn" class="send-btn" onclick="sendAction()">Tester →</button>
     </div>
-    <div class="inp-hint">Signaux : HP: PF: PM: PROG: ETAT: CHANCE: ATTR_UP: PM_FORCE: — Fiche mise à jour en temps réel</div>
+    <div class="inp-hint">
+      Claude identifie la compétence → le site calcule difficulté + points + multiplicateur + bidirectionnel
+    </div>
   </div>
 </main>
 
 <script>
-/* ══════════════════════════════════════════
-   STATE
-══════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   DONNÉES
+══════════════════════════════════════ */
 let apiKey = '';
 let currentCat = 'all';
 
-const ATTRS = [
-  // Physiques
-  {k:'force',      lbl:'FOR', v:4,  type:'physical'},
-  {k:'endurance',  lbl:'END', v:5,  type:'physical'},
-  {k:'agilite',    lbl:'AGI', v:6,  type:'physical'},
-  {k:'dexterite',  lbl:'DEX', v:5,  type:'physical'},
-  {k:'sante',      lbl:'SAN', v:5,  type:'physical'},
-  // Mentaux
-  {k:'perception', lbl:'PER', v:7,  type:'mental'},
-  {k:'intelligence',lbl:'INT',v:5,  type:'mental'},
-  {k:'volonte',    lbl:'VOL', v:4,  type:'mental'},
-  {k:'charisme',   lbl:'CHA', v:4,  type:'mental'},
-  // Magiques
-  {k:'mana',       lbl:'MAN', v:5,  type:'magic'},
-  {k:'aff_feu',    lbl:'FEU', v:0,  type:'magic'},
-  {k:'aff_eau',    lbl:'EAU', v:0,  type:'magic'},
-  {k:'aff_terre',  lbl:'TER', v:0,  type:'magic'},
-  {k:'aff_vent',   lbl:'VEN', v:0,  type:'magic'},
-  {k:'aff_lumiere',lbl:'LUM', v:0,  type:'magic'},
-  {k:'aff_ombre',  lbl:'OMB', v:9,  type:'magic'},
+const ATTRS_DEF = [
+  {k:'force',       lbl:'FOR', v:4,  type:'physical'},
+  {k:'endurance',   lbl:'END', v:5,  type:'physical'},
+  {k:'agilite',     lbl:'AGI', v:7,  type:'physical'},
+  {k:'dexterite',   lbl:'DEX', v:7,  type:'physical'},
+  {k:'sante',       lbl:'SAN', v:5,  type:'physical'},
+  {k:'perception',  lbl:'PER', v:8,  type:'mental'},
+  {k:'intelligence',lbl:'INT', v:9,  type:'mental'},
+  {k:'volonte',     lbl:'VOL', v:7,  type:'mental'},
+  {k:'charisme',    lbl:'CHA', v:4,  type:'mental'},
+  {k:'mana',        lbl:'MAN', v:8,  type:'magic'},
+  {k:'aff_feu',     lbl:'FEU', v:0,  type:'magic'},
+  {k:'aff_eau',     lbl:'EAU', v:0,  type:'magic'},
+  {k:'aff_terre',   lbl:'TER', v:0,  type:'magic'},
+  {k:'aff_vent',    lbl:'VEN', v:0,  type:'magic'},
+  {k:'aff_lumiere', lbl:'LUM', v:0,  type:'magic'},
+  {k:'aff_ombre',   lbl:'OMB', v:9,  type:'magic'},
 ];
 
-let attrs = Object.fromEntries(ATTRS.map(a => [a.k, a.v]));
-let res = { pv:{c:650,m:650}, pf:{c:600,m:600}, pm:{c:50,m:50}, chance:10 };
+let attrs = Object.fromEntries(ATTRS_DEF.map(a => [a.k, a.v]));
+let res = { pv:{c:750,m:750}, pf:{c:600,m:600}, pm:{c:80,m:80} };
 
+/* Compétences avec attributs liés et groupe */
 const COMPS = [
-  {cat:'⚔',nom:'Combat Épée Longue',   v:0,  base:['agilite','dexterite']},
-  {cat:'⚔',nom:'Combat Épée Courte',   v:0,  base:['agilite','dexterite']},
-  {cat:'⚔',nom:'Combat Dague',          v:5,  base:['agilite','dexterite']},
-  {cat:'⚔',nom:'Combat Mains Nues',     v:8,  base:['force','agilite']},
-  {cat:'⚔',nom:'Esquive',               v:12, base:['agilite']},
-  {cat:'⚔',nom:'Parade Arme',           v:0,  base:['dexterite','agilite']},
-  {cat:'⚔',nom:'Résistance Physique',   v:5,  base:['force','endurance','sante']},
-  {cat:'⚔',nom:'Résistance Douleur',    v:5,  base:['volonte','sante']},
-  {cat:'⚔',nom:'Endurance Combat',      v:5,  base:['endurance','volonte']},
-  {cat:'⚔',nom:'Résistance Fatigue',    v:5,  base:['endurance']},
-  {cat:'⚔',nom:'Feinte',                v:0,  base:['intelligence','agilite']},
-  {cat:'⚔',nom:'Charge',                v:0,  base:['force','endurance']},
-  {cat:'🏃',nom:'Course',               v:15, base:['agilite','endurance']},
-  {cat:'🏃',nom:'Marche',               v:43, base:['endurance']},
-  {cat:'🏃',nom:'Sprint',               v:8,  base:['agilite']},
-  {cat:'🏃',nom:'Escalade',             v:3,  base:['force','agilite']},
-  {cat:'🏃',nom:'Acrobatie',            v:1,  base:['agilite']},
-  {cat:'🏃',nom:'Équilibre',            v:6,  base:['agilite','dexterite']},
-  {cat:'🏃',nom:'Natation',             v:1,  base:['endurance','force']},
-  {cat:'🔮',nom:'Maîtrise Magie',       v:5,  base:['intelligence','mana'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Ombre',       v:0,  base:['intelligence','aff_ombre'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Feu',         v:0,  base:['intelligence','aff_feu'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Eau',         v:0,  base:['intelligence','aff_eau'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Terre',       v:0,  base:['intelligence','aff_terre'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Vent',        v:0,  base:['intelligence','aff_vent'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Lumière',     v:0,  base:['intelligence','aff_lumiere'], magic:true},
-  {cat:'🔮',nom:'Maîtrise Lave',        v:0,  base:['intelligence','aff_feu','aff_terre'], magic:true, fusion:true},
-  {cat:'🔮',nom:'Maîtrise Foudre',      v:0,  base:['intelligence','aff_feu','aff_vent'], magic:true, fusion:true},
-  {cat:'🔮',nom:'Maîtrise Glace',       v:0,  base:['intelligence','aff_eau','aff_vent'], magic:true, fusion:true},
-  {cat:'💬',nom:'Persuasion',           v:3,  base:['charisme','intelligence']},
-  {cat:'💬',nom:'Intimidation',         v:5,  base:['charisme','force','volonte']},
-  {cat:'💬',nom:'Tromperie',            v:8,  base:['charisme','intelligence']},
-  {cat:'💬',nom:'Marchandage',          v:2,  base:['charisme','intelligence']},
-  {cat:'💬',nom:'Leadership',           v:0,  base:['charisme','volonte']},
-  {cat:'👁',nom:'Vigilance',            v:15, base:['perception']},
-  {cat:'👁',nom:'Observation',          v:12, base:['perception','intelligence']},
-  {cat:'👁',nom:'Pistage',              v:3,  base:['perception','intelligence']},
-  {cat:'👁',nom:'Détection Magie',      v:8,  base:['perception','intelligence']},
-  {cat:'👁',nom:'Sixième Sens',         v:0,  base:['perception','volonte']},
-  {cat:'🌲',nom:'Survie Nature',        v:5,  base:['endurance','perception']},
-  {cat:'🌲',nom:'Orientation',          v:3,  base:['perception','intelligence']},
-  {cat:'🌲',nom:'Premiers Soins',       v:3,  base:['intelligence','dexterite']},
-  {cat:'📚',nom:'Langue Maternelle',    v:85, base:['intelligence']},
-  {cat:'📚',nom:'Histoire',             v:4,  base:['intelligence']},
-  {cat:'📚',nom:'Médecine',             v:0,  base:['intelligence','dexterite']},
-  {cat:'🛠',nom:'Forge',                v:0,  base:['force','dexterite']},
-  {cat:'🛠',nom:'Alchimie',             v:0,  base:['intelligence','dexterite']},
-  {cat:'🛠',nom:'Cuisine',              v:5,  base:['dexterite','intelligence']},
+  // COMBAT
+  {cat:'⚔',nom:'Combat Épée Longue',  v:0,  base:['agilite','dexterite'],       groupe:'physique', bruts_src:'coups÷10'},
+  {cat:'⚔',nom:'Combat Épée Courte',  v:0,  base:['agilite','dexterite'],        groupe:'physique', bruts_src:'coups÷10'},
+  {cat:'⚔',nom:'Combat Dague',         v:5,  base:['agilite','dexterite'],        groupe:'physique', bruts_src:'coups÷10'},
+  {cat:'⚔',nom:'Combat Mains Nues',    v:8,  base:['force','agilite'],            groupe:'physique', bruts_src:'coups÷10'},
+  {cat:'⚔',nom:'Esquive',              v:12, base:['agilite'],                    groupe:'physique', bruts_src:'esquives×0.5'},
+  {cat:'⚔',nom:'Parade Arme',          v:0,  base:['dexterite','agilite'],        groupe:'physique', bruts_src:'parades×0.5'},
+  {cat:'⚔',nom:'Résistance Physique',  v:5,  base:['force','endurance','sante'],  groupe:'physique', bruts_src:'degats÷10'},
+  {cat:'⚔',nom:'Résistance Douleur',   v:5,  base:['volonte','sante'],            groupe:'physique', bruts_src:'degats÷15'},
+  {cat:'⚔',nom:'Endurance Combat',     v:5,  base:['endurance','volonte'],        groupe:'physique', bruts_src:'min_combat×2'},
+  {cat:'⚔',nom:'Résistance Fatigue',   v:5,  base:['endurance'],                  groupe:'physique', bruts_src:'h_effort×3'},
+  {cat:'⚔',nom:'Feinte',               v:0,  base:['intelligence','agilite'],     groupe:'physique', bruts_src:'feintes×3'},
+  {cat:'⚔',nom:'Charge',               v:0,  base:['force','endurance'],          groupe:'physique', bruts_src:'charges×5'},
+  // MOUVEMENT
+  {cat:'🏃',nom:'Course',              v:15, base:['agilite','endurance'],        groupe:'physique', bruts_src:'km÷2'},
+  {cat:'🏃',nom:'Marche',              v:43, base:['endurance'],                  groupe:'physique', bruts_src:'km÷5'},
+  {cat:'🏃',nom:'Sprint',              v:8,  base:['agilite'],                    groupe:'physique', bruts_src:'sprints×2'},
+  {cat:'🏃',nom:'Escalade',            v:3,  base:['force','agilite'],            groupe:'physique', bruts_src:'metres×3'},
+  {cat:'🏃',nom:'Acrobatie',           v:1,  base:['agilite'],                    groupe:'physique', bruts_src:'h_pratique×5'},
+  {cat:'🏃',nom:'Équilibre',           v:6,  base:['agilite','dexterite'],        groupe:'physique', bruts_src:'h_pratique×4'},
+  {cat:'🏃',nom:'Natation',            v:1,  base:['endurance','force'],          groupe:'physique', bruts_src:'km×3'},
+  // MAGIE
+  {cat:'🔮',nom:'Maîtrise Magie',      v:5,  base:['intelligence','mana'],        groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Ombre',      v:0,  base:['intelligence','aff_ombre'],   groupe:'magie',    bruts_src:'sorts×puissance|meditation×3'},
+  {cat:'🔮',nom:'Maîtrise Feu',        v:0,  base:['intelligence','aff_feu'],     groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Eau',        v:0,  base:['intelligence','aff_eau'],     groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Terre',      v:0,  base:['intelligence','aff_terre'],   groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Vent',       v:0,  base:['intelligence','aff_vent'],    groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Lumière',    v:0,  base:['intelligence','aff_lumiere'], groupe:'magie',    bruts_src:'sorts×puissance'},
+  {cat:'🔮',nom:'Maîtrise Lave',       v:0,  base:['intelligence','aff_feu','aff_terre'],  groupe:'magie', bruts_src:'sorts×puissance', fusion:true},
+  {cat:'🔮',nom:'Maîtrise Foudre',     v:0,  base:['intelligence','aff_feu','aff_vent'],   groupe:'magie', bruts_src:'sorts×puissance', fusion:true},
+  {cat:'🔮',nom:'Maîtrise Glace',      v:0,  base:['intelligence','aff_eau','aff_vent'],   groupe:'magie', bruts_src:'sorts×puissance', fusion:true},
+  // SOCIAL
+  {cat:'💬',nom:'Persuasion',          v:3,  base:['charisme','intelligence'],    groupe:'social',   bruts_src:'succes×importance×8'},
+  {cat:'💬',nom:'Intimidation',        v:5,  base:['charisme','force','volonte'], groupe:'social',   bruts_src:'succes×resistance×10'},
+  {cat:'💬',nom:'Tromperie',           v:8,  base:['charisme','intelligence'],    groupe:'social',   bruts_src:'succes×difficulte×8'},
+  {cat:'💬',nom:'Marchandage',         v:2,  base:['charisme','intelligence'],    groupe:'social',   bruts_src:'valeur÷100'},
+  {cat:'💬',nom:'Leadership',          v:0,  base:['charisme','volonte'],         groupe:'social',   bruts_src:'succes×impact×10'},
+  {cat:'💬',nom:'Séduction',           v:0,  base:['charisme','perception'],      groupe:'social',   bruts_src:'succes×difficulte×6'},
+  // PERCEPTION
+  {cat:'👁',nom:'Vigilance',           v:15, base:['perception'],                 groupe:'physique', bruts_src:'h_garde×2'},
+  {cat:'👁',nom:'Observation',         v:12, base:['perception','intelligence'],  groupe:'physique', bruts_src:'detail_trouve×5'},
+  {cat:'👁',nom:'Pistage',             v:3,  base:['perception','intelligence'],  groupe:'physique', bruts_src:'piste_suivie×8'},
+  {cat:'👁',nom:'Investigation',       v:5,  base:['intelligence','perception'],  groupe:'social',   bruts_src:'enigme×10'},
+  {cat:'👁',nom:'Détection Magie',     v:8,  base:['perception','intelligence'],  groupe:'physique', bruts_src:'magie_detectee×6'},
+  {cat:'👁',nom:'Sixième Sens',        v:0,  base:['perception','volonte'],       groupe:'physique', bruts_src:'danger_evite×15'},
+  // SURVIE
+  {cat:'🌲',nom:'Survie Nature',       v:5,  base:['endurance','perception'],     groupe:'physique', bruts_src:'journee×10'},
+  {cat:'🌲',nom:'Orientation',         v:3,  base:['perception','intelligence'],  groupe:'physique', bruts_src:'navigation×5'},
+  {cat:'🌲',nom:'Premiers Soins',      v:3,  base:['intelligence','dexterite'],   groupe:'social',   bruts_src:'soin_reussi×5'},
+  {cat:'🌲',nom:'Camouflage',          v:0,  base:['perception','agilite'],       groupe:'physique', bruts_src:'dissimulation×8'},
+  // SAVOIR
+  {cat:'📚',nom:'Langue Maternelle',   v:85, base:['intelligence'],               groupe:'social',   bruts_src:'automatique'},
+  {cat:'📚',nom:'Histoire',            v:4,  base:['intelligence'],               groupe:'social',   bruts_src:'h_etude×2'},
+  {cat:'📚',nom:'Médecine',            v:0,  base:['intelligence','dexterite'],   groupe:'social',   bruts_src:'soin_complexe×10'},
+  {cat:'📚',nom:'Mathématiques',       v:4,  base:['intelligence'],               groupe:'social',   bruts_src:'probleme×2'},
+  // ARTISANAT
+  {cat:'🛠',nom:'Cuisine',             v:5,  base:['dexterite','intelligence'],   groupe:'physique', bruts_src:'repas×3'},
+  {cat:'🛠',nom:'Forge',               v:0,  base:['force','dexterite'],          groupe:'physique', bruts_src:'objet×complexite×10'},
+  {cat:'🛠',nom:'Alchimie',            v:0,  base:['intelligence','dexterite'],   groupe:'social',   bruts_src:'potion×10'},
+  {cat:'🛠',nom:'Herboristerie',       v:0,  base:['perception','intelligence'],  groupe:'physique', bruts_src:'preparation×5'},
 ];
 
-/* ══════════════════════════════════════════
-   BOUCLES SYSTÉMIQUES
-══════════════════════════════════════════ */
-const LOOPS = [
-  {
-    id:'loop1', title:'Boucle 1 — Combat → Attributs physiques',
-    desc:'Quand Combat Épée ≥ Agilité×10 → Agilité monte. Agilité haute = Esquive progresse plus vite.',
-    color:'var(--physical)',
-    tests:[
-      'Je m\'entraîne avec mon épée longue pendant 1h [DÉ:15] — évalue la progression et si un attribut devrait monter',
-      'Ma compétence Combat Épée est à 60 et mon Agilité est à 6. Est-ce que l\'Agilité devrait monter ?',
-    ]
-  },
-  {
-    id:'loop2', title:'Boucle 2 — Magie ↔ Physique (PM→PF)',
-    desc:'PM épuisés → peut forcer avec PF. Un Mage-Guerrier (PF 600) lance plus de sorts qu\'un Mage Pur (PF 50).',
-    color:'var(--magic)',
-    tests:[
-      'Je lance un sort d\'Ombre mais mes PM sont à 0/50. Je force avec mes PF [DÉ:12]',
-      'Mage Pur (PM 90, PF 50) vs Mage-Guerrier (PM 60, PF 600) — combien de sorts chacun peut lancer en combat ?',
-    ]
-  },
-  {
-    id:'loop3', title:'Boucle 3 — Maîtrise ↔ Affinité magique',
-    desc:'Maîtrise haute + sorts challengeants → Affinité monte. Affinité haute → Maîtrise progresse plus vite.',
-    color:'var(--magic)',
-    tests:[
-      'Ma Maîtrise Ombre est à 0 mais mon Affinité Ombre est à 9. Je tente un sort d\'ombre [DÉ:18]',
-      'Ma Maîtrise Ombre est à 90 et Affinité Ombre 6. Est-ce que l\'Affinité devrait monter ? (seuil = Affinité×15)',
-    ]
-  },
-  {
-    id:'loop4', title:'Boucle 4 — Fusions élémentaires',
-    desc:'Maîtrise Feu + Maîtrise Vent ≥ seuils → Débloque Maîtrise Foudre. Pratiquer Foudre améliore Feu ET Vent.',
-    color:'var(--warning)',
-    tests:[
-      'Mes Maîtrises Feu=25 et Vent=30 sont-elles suffisantes pour débloquer Maîtrise Foudre ? (seuil: les deux ≥ 25)',
-      'Je lance un sort de Foudre (Maîtrise Foudre 15) — est-ce que Maîtrise Feu et Maîtrise Vent devraient progresser ?',
-    ]
-  },
-  {
-    id:'loop5', title:'Boucle 5 — Fatigue ↔ Performance',
-    desc:'PF bas = malus performance. Se battre épuisé est risqué mais force une progression plus rapide.',
-    color:'var(--warning)',
-    tests:[
-      'Mon PF est à 15% (90/600). Je combats quand même. Quels malus s\'appliquent et quel est le risque ?',
-      'Je m\'entraîne jusqu\'à épuisement complet (PF 0). Quelles sont les conséquences et bénéfices ?',
-    ]
-  },
-  {
-    id:'loop6', title:'Boucle 6 — Talent × Travail',
-    desc:'Physique/Mental : attribut bas = progresse vite. Magie : affinité haute = progresse vite.',
-    color:'var(--accent2)',
-    tests:[
-      'Mon Charisme est à 4. Je tente de persuader des gens tous les jours. À quelle vitesse progresse Persuasion ? (mult = (11-4.5)÷2)',
-      'Mon Affinité Ombre est à 9 et mon Intelligence à 5. À quelle vitesse progresse Maîtrise Ombre ? (score=(5+9)÷2=7, mult=7÷2=3.5)',
-    ]
-  },
-];
-
-/* ══════════════════════════════════════════
+/* ══════════════════════════════════════
    PRESETS
-══════════════════════════════════════════ */
+══════════════════════════════════════ */
 const PRESETS = {
-  mage_pur: {
-    nom:'Mage Pur', age:25, talent:'Normal ×1.0',
-    attrs:{force:3,endurance:3,agilite:4,dexterite:5,sante:3,perception:7,intelligence:9,volonte:7,charisme:4,mana:9,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:2},
-    res:{pv:{c:350,m:350},pf:{c:50,m:50},pm:{c:90,m:90},chance:12},
-    comps:[{nom:'Maîtrise Feu',v:70},{nom:'Maîtrise Magie',v:60},{nom:'Intelligence',v:85}]
-  },
-  mage_guerrier: {
-    nom:'Mage-Guerrier', age:28, talent:'Doué ×1.5',
-    attrs:{force:6,endurance:8,agilite:6,dexterite:6,sante:6,perception:6,intelligence:7,volonte:6,charisme:5,mana:6,aff_feu:5,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:3},
-    res:{pv:{c:650,m:650},pf:{c:600,m:600},pm:{c:60,m:60},chance:15},
-    comps:[{nom:'Combat Épée Longue',v:45},{nom:'Maîtrise Feu',v:40},{nom:'Résistance Fatigue',v:85},{nom:'Endurance Combat',v:60}]
+  ladix: {
+    nom:'Ladix', age:17, talent:'2.5',
+    attrs:{force:4,endurance:5,agilite:7,dexterite:7,sante:5,perception:8,intelligence:9,volonte:7,charisme:4,mana:8,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:9},
+    res:{pv:{c:750,m:750},pf:{c:600,m:600},pm:{c:80,m:80}},
+    comps:{Tromperie:8,Vigilance:15,Observation:12,Course:15,Marche:43,Sprint:8,'Combat Dague':5,'Combat Mains Nues':8,Esquive:12,Perception:8,'Résistance Douleur':5,'Résistance Fatigue':5,'Maîtrise Magie':5,'Langue Maternelle':85,Histoire:4,Mathématiques:4,Cuisine:5,Persuasion:3,Intimidation:5,Marchandage:2}
   },
   guerrier: {
-    nom:'Guerrier Pur', age:30, talent:'Normal ×1.0',
+    nom:'Kael', age:30, talent:'1.0',
     attrs:{force:8,endurance:8,agilite:7,dexterite:6,sante:7,perception:5,intelligence:4,volonte:7,charisme:5,mana:2,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:0},
-    res:{pv:{c:850,m:850},pf:{c:800,m:800},pm:{c:20,m:20},chance:10},
-    comps:[{nom:'Combat Épée Longue',v:65},{nom:'Esquive',v:50},{nom:'Résistance Physique',v:70},{nom:'Endurance Combat',v:75}]
+    res:{pv:{c:850,m:850},pf:{c:800,m:800},pm:{c:20,m:20}},
+    comps:{'Combat Épée Longue':65,Esquive:50,'Parade Arme':45,'Résistance Physique':70,'Endurance Combat':75,'Résistance Fatigue':80,Course:40,Marche:60}
   },
-  ladix: {
-    nom:'Ladix', age:17, talent:'Prodige ×2.5',
-    attrs:{force:4,endurance:5,agilite:7,dexterite:7,sante:5,perception:8,intelligence:9,volonte:7,charisme:4,mana:8,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:9},
-    res:{pv:{c:750,m:750},pf:{c:600,m:600},pm:{c:80,m:80},chance:28},
-    comps:[{nom:'Maîtrise Magie',v:5},{nom:'Maîtrise Ombre',v:0},{nom:'Détection Magie',v:25},{nom:'Observation',v:20},{nom:'Tromperie',v:15},{nom:'Vigilance',v:22}]
+  mage: {
+    nom:'Élysia', age:25, talent:'1.5',
+    attrs:{force:3,endurance:3,agilite:4,dexterite:5,sante:3,perception:7,intelligence:9,volonte:7,charisme:4,mana:9,aff_feu:8,aff_eau:0,aff_terre:0,aff_vent:3,aff_lumiere:0,aff_ombre:0},
+    res:{pv:{c:320,m:320},pf:{c:50,m:50},pm:{c:90,m:90}},
+    comps:{'Maîtrise Magie':60,'Maîtrise Feu':70,'Maîtrise Vent':25,'Langue Maternelle':85,Histoire:20,'Détection Magie':35}
+  },
+  mage_guerrier: {
+    nom:'Draven', age:28, talent:'1.5',
+    attrs:{force:6,endurance:8,agilite:6,dexterite:6,sante:6,perception:6,intelligence:7,volonte:6,charisme:5,mana:6,aff_feu:5,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:3},
+    res:{pv:{c:650,m:650},pf:{c:600,m:600},pm:{c:60,m:60}},
+    comps:{'Combat Épée Longue':45,'Maîtrise Feu':40,'Résistance Fatigue':85,'Endurance Combat':60,Esquive:35}
   }
 };
 
-/* ══════════════════════════════════════════
-   INIT
-══════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('rpg_api_key');
-  if (saved) { apiKey=saved; document.getElementById('api-inp').value=saved; setApiSt('ok'); }
-  document.getElementById('act-inp').addEventListener('keydown', e => { if(e.key==='Enter') sendAction(); });
-  document.getElementById('api-inp').addEventListener('keydown', e => { if(e.key==='Enter') saveApi(); });
-  renderAttrs(); renderComps('all'); renderLoops();
-  loadPreset('ladix');
-});
+/* ══════════════════════════════════════
+   SYSTÈME DE CALCUL
+══════════════════════════════════════ */
 
+// Difficulté selon valeur de compétence
+function getDifficulte(compVal) {
+  if (compVal >= 80) return { label:'tres_facile', mult:0.2,  css:'diff-tres_facile' };
+  if (compVal >= 60) return { label:'facile',      mult:0.5,  css:'diff-facile' };
+  if (compVal >= 40) return { label:'normal',      mult:1.0,  css:'diff-normal' };
+  if (compVal >= 20) return { label:'difficile',   mult:1.5,  css:'diff-difficile' };
+  return               { label:'extreme',      mult:2.0,  css:'diff-extreme' };
+}
+
+// Modificateurs de situation
+function getSituationMult() {
+  const pfPct = res.pf.m > 0 ? res.pf.c / res.pf.m : 1;
+  let mod = 1.0;
+  if (pfPct < 0.25) mod *= 0.7;  // épuisé
+  else if (pfPct < 0.50) mod *= 0.85; // fatigué
+  return mod;
+}
+
+// Calcul multiplicateur selon groupe
+function getMultiplicateur(comp) {
+  const baseVals = comp.base.map(k => attrs[k] || 5);
+  const score = baseVals.reduce((a,b) => a+b, 0) / baseVals.length;
+  const talent = parseFloat(document.getElementById('pc-talent').value) || 1.0;
+
+  if (comp.groupe === 'magie') {
+    // Magie : talent accélère → Score ÷ 2
+    return (score / 2) * talent;
+  } else if (comp.groupe === 'social') {
+    // Social : talent accélère → Score ÷ 2
+    return (score / 2) * talent;
+  } else {
+    // Physique : attribut bas = progresse vite → (11 - Score) ÷ 2
+    return ((11 - score) / 2) * talent;
+  }
+}
+
+// Points bruts selon type d'action
+function getPointsBruts(comp, actionType) {
+  const bruts = {
+    meditation:   3,
+    etude:        2,
+    sort_mineur:  5,
+    sort_moyen:   8,
+    sort_majeur:  12,
+    combat:       10,
+    conversation: 5,
+    pratique:     6,
+    exploration:  4,
+    default:      5
+  };
+  return bruts[actionType] || bruts.default;
+}
+
+// Vérification bidirectionnelle
+function checkBidirectionnel(comp, oldVal, newVal) {
+  const results = [];
+  comp.base.forEach(attrKey => {
+    const attrVal = attrs[attrKey];
+    if (!attrVal) return;
+    const seuil = attrVal * 15;
+    // Vérifie si on vient de franchir le seuil
+    if (oldVal < seuil && newVal >= seuil) {
+      attrs[attrKey] = Math.min(10, attrVal + 1);
+      results.push({ attr: attrKey, old: attrVal, new: attrs[attrKey] });
+      // Flash visuel
+      const el = document.getElementById('ac-' + attrKey);
+      if (el) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 600); }
+      renderAttrs();
+    }
+  });
+  return results;
+}
+
+/* ══════════════════════════════════════
+   API
+══════════════════════════════════════ */
 function saveApi() {
   const v = document.getElementById('api-inp').value.trim();
   if (!v.startsWith('sk-ant-')) { setApiSt('err'); return; }
   apiKey = v; localStorage.setItem('rpg_api_key', v); setApiSt('ok');
 }
-function setApiSt(s) { const el=document.getElementById('api-st'); el.className='api-st '+s; el.textContent=s==='ok'?'✓ Connecté':'✗ Invalide'; }
-
-function showTab(t) {
-  document.querySelectorAll('.tab,.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelector(`[onclick="showTab('${t}')"]`).classList.add('active');
-  document.getElementById('tab-'+t).classList.add('active');
+function setApiSt(s) {
+  const el = document.getElementById('api-st');
+  el.className = 'api-st ' + s;
+  el.textContent = s === 'ok' ? '✓ Connecté' : '✗ Invalide';
 }
 
-/* ══════════════════════════════════════════
-   PRESETS
-══════════════════════════════════════════ */
-function loadPreset(key) {
-  const p = PRESETS[key]; if (!p) return;
-  document.getElementById('pc-nom').value = p.nom;
-  document.getElementById('pc-age').value = p.age;
-  document.getElementById('pc-talent').value = p.talent;
-  attrs = {...attrs, ...p.attrs};
-  res = JSON.parse(JSON.stringify(p.res));
-  // Reset comps then apply preset
-  COMPS.forEach(c => c.v = getDefaultCompVal(c.nom));
-  if (p.comps) p.comps.forEach(pc2 => { const c=COMPS.find(x=>x.nom===pc2.nom); if(c) c.v=pc2.v; });
-  renderAttrs(); renderComps(currentCat); updateAllBars();
-  addLog(`✓ Preset chargé : ${p.nom}`, '', []);
+function buildSystemPrompt() {
+  const compList = COMPS.map(c =>
+    `${c.nom}(${c.v}) diff:${getDifficulte(c.v).label}`
+  ).join(' | ');
+
+  return `Tu es un moteur de règles JDR. Ton rôle est UNIQUEMENT d'identifier quelle compétence est utilisée dans l'action décrite et de vérifier si c'est cohérent avec les stats.
+
+PERSONNAGE : ${document.getElementById('pc-nom').value}, ${document.getElementById('pc-age').value}ans
+COMPÉTENCES : ${compList}
+
+RÈGLE DIFFICULTÉ (déjà calculée par le site) :
+0-19=extreme | 20-39=difficile | 40-59=normal | 60-79=facile | 80+=tres_facile
+
+RÉPONDS UNIQUEMENT dans ce format strict, rien d'autre :
+COMP: [nom exact de la compétence parmi la liste]
+DIFF: [tres_facile|facile|normal|difficile|extreme]
+COHERENT: [oui|non]
+RAISON: [si non : pourquoi en une phrase courte]
+
+Si plusieurs compétences sont utilisées, liste-les toutes :
+COMP: Combat Épée Longue
+DIFF: extreme
+COMP: Esquive
+DIFF: difficile
+COHERENT: oui`;
 }
 
-function getDefaultCompVal(nom) {
-  const defaults = {'Langue Maternelle':85,'Vigilance':15,'Marche':43,'Observation':12,'Esquive':12,'Course':15};
-  return defaults[nom] || 0;
+async function callClaude(action) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 300,
+      system: buildSystemPrompt(),
+      messages: [{ role: 'user', content: action }]
+    })
+  });
+  if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.error?.message || `HTTP ${r.status}`); }
+  const d = await r.json();
+  return d.content.find(b => b.type === 'text')?.text || '';
 }
 
-/* ══════════════════════════════════════════
-   RENDER ATTRS
-══════════════════════════════════════════ */
+// Parser la réponse de Claude
+function parseResponse(text) {
+  const results = [];
+  const lines = text.split('\n');
+  let current = null;
+  let coherent = true;
+  let raison = '';
+
+  for (const line of lines) {
+    if (line.startsWith('COMP:')) {
+      if (current) results.push(current);
+      const nom = line.replace('COMP:', '').trim();
+      const comp = COMPS.find(c => c.nom.toLowerCase() === nom.toLowerCase());
+      current = { nom, comp, diff: null };
+    } else if (line.startsWith('DIFF:') && current) {
+      current.diff = line.replace('DIFF:', '').trim().toLowerCase();
+    } else if (line.startsWith('COHERENT:')) {
+      coherent = line.replace('COHERENT:', '').trim().toLowerCase() === 'oui';
+    } else if (line.startsWith('RAISON:')) {
+      raison = line.replace('RAISON:', '').trim();
+    }
+  }
+  if (current) results.push(current);
+
+  return { comps: results, coherent, raison };
+}
+
+/* ══════════════════════════════════════
+   SEND ACTION
+══════════════════════════════════════ */
+async function sendAction() {
+  if (!apiKey) { alert('Clé API manquante !'); return; }
+  const input = document.getElementById('act-inp');
+  const action = input.value.trim();
+  if (!action) return;
+
+  input.value = '';
+  document.getElementById('send-btn').disabled = true;
+
+  // Entrée dans le log
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const time = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  entry.innerHTML = `
+    <div class="log-hdr">
+      <span class="log-action">▶ ${esc(action)}</span>
+      <span class="log-meta">${time}</span>
+    </div>
+    <div class="log-loading"><span class="dots"><span>.</span><span>.</span><span>.</span></span> Claude identifie la compétence...</div>`;
+  document.getElementById('test-log').appendChild(entry);
+  document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
+
+  try {
+    const response = await callClaude(action);
+    const parsed = parseResponse(response);
+    const loading = entry.querySelector('.log-loading');
+    loading.remove();
+
+    entry.classList.add(parsed.coherent ? 'coherent' : 'incoherent');
+
+    if (!parsed.coherent) {
+      // Action incohérente
+      entry.innerHTML += `
+        <div class="log-result">
+          <div class="result-row">
+            <span class="result-key">Cohérence :</span>
+            <span class="result-val ko">✗ Non cohérent</span>
+          </div>
+          <div class="result-row">
+            <span class="result-key">Raison :</span>
+            <span class="result-val">${esc(parsed.raison)}</span>
+          </div>
+        </div>`;
+      document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
+      document.getElementById('send-btn').disabled = false;
+      input.focus();
+      return;
+    }
+
+    // Traiter chaque compétence identifiée
+    const changes = [];
+    let calcHtml = '';
+
+    for (const item of parsed.comps) {
+      if (!item.comp) {
+        calcHtml += `<div class="calc-line"><span class="calc-label">${esc(item.nom)}</span><span class="calc-val" style="color:var(--danger)">compétence non trouvée</span></div>`;
+        continue;
+      }
+
+      const comp = item.comp;
+      const diff = getDifficulte(comp.v);
+      const multAttr = getMultiplicateur(comp);
+      const situMult = getSituationMult();
+      const pointsBruts = getPointsBruts(comp, detectActionType(action));
+      const pointsFinaux = pointsBruts * multAttr * diff.mult * situMult;
+
+      const oldVal = comp.v;
+      comp.v = parseFloat(Math.min(100, comp.v + pointsFinaux).toFixed(2));
+
+      // Bidirectionnel
+      const attrChanges = checkBidirectionnel(comp, oldVal, comp.v);
+
+      // Badge
+      changes.push({ nom: comp.nom, old: oldVal, new: comp.v });
+      attrChanges.forEach(ac => changes.push({ attr: ac.attr, old: ac.old, new: ac.new }));
+
+      // Calcul détaillé
+      calcHtml += `
+        <div style="margin-bottom:8px;">
+          <div class="calc-line">
+            <span class="calc-label" style="color:var(--accent2);font-weight:700;">${esc(comp.nom)}</span>
+            <span class="calc-val"><span class="comp-diff ${diff.css}">${diff.label}</span></span>
+          </div>
+          <div class="calc-line">
+            <span class="calc-label">Points bruts (${detectActionType(action)})</span>
+            <span class="calc-val">${pointsBruts}</span>
+          </div>
+          <div class="calc-line">
+            <span class="calc-label">× Multiplicateur attributs (${comp.groupe})</span>
+            <span class="calc-val">×${multAttr.toFixed(2)}</span>
+          </div>
+          <div class="calc-line">
+            <span class="calc-label">× Difficulté (${diff.label})</span>
+            <span class="calc-val">×${diff.mult}</span>
+          </div>
+          ${situMult < 1 ? `<div class="calc-line"><span class="calc-label">× Situation (PF bas)</span><span class="calc-val">×${situMult.toFixed(2)}</span></div>` : ''}
+          <div class="calc-line" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px;">
+            <span class="calc-label">= Points finaux</span>
+            <span class="calc-val calc-total">${pointsFinaux.toFixed(2)}</span>
+          </div>
+          <div class="calc-line">
+            <span class="calc-label">Résultat compétence</span>
+            <span class="calc-val calc-result">${oldVal} → ${comp.v}</span>
+          </div>
+          ${attrChanges.map(ac => `
+          <div class="calc-line" style="color:var(--magic);">
+            <span class="calc-label">⬆ Bidirectionnel — ${ac.attr.toUpperCase()}</span>
+            <span class="calc-val">${ac.old} → ${ac.new} ↑</span>
+          </div>`).join('')}
+        </div>`;
+
+      // Highlight compétence dans la liste
+      const row = document.getElementById('cr-' + esc(comp.nom));
+      if (row) {
+        row.classList.add('upgraded');
+        setTimeout(() => row.classList.remove('upgraded'), 3000);
+      }
+    }
+
+    // Construire résultat
+    const badgesHtml = changes.map(c => {
+      if (c.attr) return `<span class="badge badge-attr">${c.attr.toUpperCase()} ${c.old}→${c.new} ↑</span>`;
+      return `<span class="badge badge-up">${esc(c.nom)} ${c.old}→${c.new}</span>`;
+    }).join('');
+
+    entry.innerHTML += `
+      <div class="log-result">
+        <div class="result-row">
+          <span class="result-key">Cohérence :</span>
+          <span class="result-val ok">✓ Action cohérente</span>
+        </div>
+        <div class="result-row">
+          <span class="result-key">Compétences :</span>
+          <span class="result-val">${parsed.comps.map(c => esc(c.nom)).join(', ')}</span>
+        </div>
+      </div>
+      <div class="log-calc">${calcHtml}</div>
+      ${changes.length > 0 ? `<div class="log-changes">${badgesHtml}</div>` : ''}`;
+
+    renderComps(currentCat);
+
+  } catch(e) {
+    const loading = entry.querySelector('.log-loading');
+    if (loading) loading.textContent = '✗ Erreur : ' + e.message;
+  }
+
+  document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
+  document.getElementById('send-btn').disabled = false;
+  input.focus();
+}
+
+// Détecter le type d'action pour les points bruts
+function detectActionType(action) {
+  const a = action.toLowerCase();
+  if (a.includes('médit') || a.includes('contempl')) return 'meditation';
+  if (a.includes('étudi') || a.includes('lire') || a.includes('grimoire')) return 'etude';
+  if (a.includes('sort') || a.includes('magie') || a.includes('invoqu')) return 'sort_moyen';
+  if (a.includes('combat') || a.includes('frapp') || a.includes('attaqu') || a.includes('épée') || a.includes('lame')) return 'combat';
+  if (a.includes('persuad') || a.includes('convainc') || a.includes('negoci') || a.includes('parlier') || a.includes('discuss')) return 'conversation';
+  if (a.includes('cours') || a.includes('sprint') || a.includes('escalad') || a.includes('saute')) return 'pratique';
+  if (a.includes('explor') || a.includes('traqu') || a.includes('cherch') || a.includes('observe')) return 'exploration';
+  return 'default';
+}
+
+/* ══════════════════════════════════════
+   RENDER
+══════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('rpg_api_key');
+  if (saved) { apiKey = saved; document.getElementById('api-inp').value = saved; setApiSt('ok'); }
+  document.getElementById('act-inp').addEventListener('keydown', e => { if(e.key==='Enter') sendAction(); });
+  document.getElementById('api-inp').addEventListener('keydown', e => { if(e.key==='Enter') saveApi(); });
+  renderAttrs(); renderComps('all');
+  loadPreset('ladix');
+});
+
 function renderAttrs() {
   const grid = document.getElementById('attrs-grid');
   grid.innerHTML = '';
-  ATTRS.forEach(a => {
+  ATTRS_DEF.forEach(a => {
     const v = attrs[a.k];
     const cell = document.createElement('div');
     cell.className = `attr-cell ${a.type}`;
-    cell.id = 'ac-'+a.k;
-    cell.onclick = () => editAttr(a.k, a.lbl);
-    cell.innerHTML = `<div class="attr-label">${a.lbl}</div><div class="attr-val">${v}</div>`;
+    cell.id = 'ac-' + a.k;
+    cell.onclick = () => editAttr(a.k);
+    cell.innerHTML = `<div class="attr-lbl">${a.lbl}</div><div class="attr-val">${v}</div>`;
     grid.appendChild(cell);
   });
-  updatePmZone();
 }
 
-function editAttr(k, lbl) {
+function editAttr(k) {
   const cur = attrs[k];
-  const v = prompt(`${lbl} (actuel: ${cur}) — nouvelle valeur (0-10):`, cur);
+  const v = prompt(`${k.toUpperCase()} (actuel: ${cur}) — nouvelle valeur (0-10):`, cur);
   if (v === null) return;
-  attrs[k] = Math.max(0, Math.min(10, parseInt(v)||cur));
-  document.querySelector(`#ac-${k} .attr-val`).textContent = attrs[k];
-  document.getElementById('ac-'+k).classList.add('changed');
-  setTimeout(() => document.getElementById('ac-'+k).classList.remove('changed'), 600);
-  checkBidirectional();
+  attrs[k] = Math.max(0, Math.min(10, parseInt(v) || cur));
+  renderAttrs();
 }
 
-/* ══════════════════════════════════════════
-   RENDER COMPS
-══════════════════════════════════════════ */
 function filterC(cat, btn) {
   currentCat = cat;
   document.querySelectorAll('.cf-btn').forEach(b => b.classList.remove('active'));
@@ -568,18 +792,26 @@ function filterC(cat, btn) {
 }
 
 function renderComps(cat) {
-  const list = document.getElementById('comp-list'); list.innerHTML = '';
+  const list = document.getElementById('comp-list');
+  list.innerHTML = '';
   let filtered = COMPS;
   if (cat === '>0') filtered = filtered.filter(c => c.v > 0);
   else if (cat !== 'all') filtered = filtered.filter(c => c.cat === cat);
+
   filtered.forEach(c => {
+    const diff = getDifficulte(c.v);
     const row = document.createElement('div');
-    row.className = 'comp-row'; row.id = 'cr-'+esc(c.nom);
-    const col = c.v===0?'var(--hint)':c.v<30?'var(--muted)':c.v<60?'var(--accent2)':c.v<90?'var(--gold)':'var(--danger)';
+    row.className = 'comp-row';
+    row.id = 'cr-' + esc(c.nom);
+
+    const col = c.v === 0 ? 'var(--hint)' : c.v < 20 ? 'var(--muted)' : c.v < 50 ? 'var(--accent2)' : c.v < 80 ? 'var(--gold)' : 'var(--success)';
+    const nameClass = c.v === 0 ? 'zero' : c.v < 20 ? 'low' : 'hi';
+
     row.innerHTML = `
-      <span class="comp-name ${c.v>0?'hi':''}">${esc(c.nom)}${c.magic?'<span style="color:var(--magic);font-size:9px;"> ✦</span>':''}</span>
+      <span class="comp-name ${nameClass}">${esc(c.nom)}${c.fusion ? '<span style="color:var(--magic);font-size:9px;"> ✦</span>' : ''}</span>
+      <span class="comp-diff ${diff.css}">${diff.label}</span>
       <div class="comp-bar"><div class="comp-fill" style="width:${c.v}%;background:${col}"></div></div>
-      <span class="comp-val" style="color:${col};cursor:pointer;" onclick="editComp('${esc(c.nom)}')">${c.v}</span>`;
+      <span class="comp-val" style="color:${col}" onclick="editComp('${esc(c.nom)}')">${c.v}</span>`;
     list.appendChild(row);
   });
 }
@@ -588,290 +820,49 @@ function editComp(nom) {
   const c = COMPS.find(x => x.nom === nom); if (!c) return;
   const v = prompt(`${nom} (actuel: ${c.v}) — nouvelle valeur (0-100):`, c.v);
   if (v === null) return;
-  c.v = Math.max(0, Math.min(100, parseInt(v)||c.v));
+  c.v = Math.max(0, Math.min(100, parseFloat(v) || c.v));
   renderComps(currentCat);
-  checkBidirectional();
 }
 
-/* ══════════════════════════════════════════
-   RENDER LOOPS
-══════════════════════════════════════════ */
-function renderLoops() {
-  const list = document.getElementById('loops-list'); list.innerHTML = '';
-  LOOPS.forEach(loop => {
-    const card = document.createElement('div');
-    card.className = 'loop-card'; card.id = loop.id;
-    card.innerHTML = `
-      <div class="loop-title" style="color:${loop.color}">${loop.title}</div>
-      <div class="loop-desc">${loop.desc}</div>
-      ${loop.tests.map((t,i) => `<button class="loop-test-btn" onclick="testLoop('${loop.id}',${i})">▶ Test ${i+1}</button>`).join('')}`;
-    list.appendChild(card);
-  });
-}
-
-function testLoop(loopId, testIdx) {
-  const loop = LOOPS.find(l => l.id === loopId); if (!loop) return;
-  document.getElementById('act-inp').value = loop.tests[testIdx];
-  document.querySelectorAll('.loop-card').forEach(c => c.classList.remove('active-loop'));
-  document.getElementById(loopId).classList.add('active-loop');
-  showTab('attrs');
-  sendAction();
-}
-
-/* ══════════════════════════════════════════
-   RESSOURCES
-══════════════════════════════════════════ */
 function syncRes(t) {
-  const c=parseInt(document.getElementById(`${t}-c`).value)||0;
-  const m=parseInt(document.getElementById(`${t}-m`).value)||1;
-  res[t]={c:Math.min(c,m),m};
-  updateAllBars();
+  const c = parseInt(document.getElementById(`${t}-c`).value) || 0;
+  const m = parseInt(document.getElementById(`${t}-m`).value) || 1;
+  res[t] = { c: Math.min(c, m), m };
+  updateBars();
 }
-function syncChance() {
-  res.chance=Math.max(0,Math.min(100,parseInt(document.getElementById('ch-v').value)||0));
-  document.getElementById('bar-ch').style.width=res.chance+'%';
-}
-function updateAllBars() {
+
+function updateBars() {
   ['pv','pf','pm'].forEach(t => {
-    const pct=res[t].m>0?Math.max(0,Math.min(100,(res[t].c/res[t].m)*100)):0;
-    document.getElementById('bar-'+t).style.width=pct+'%';
-    document.getElementById('val-'+t).textContent=`${res[t].c}/${res[t].m}`;
-    document.getElementById(`${t}-c`).value=res[t].c;
-    document.getElementById(`${t}-m`).value=res[t].m;
+    const pct = res[t].m > 0 ? Math.max(0, Math.min(100, (res[t].c / res[t].m) * 100)) : 0;
+    document.getElementById('bar-' + t).style.width = pct + '%';
+    document.getElementById('val-' + t).textContent = `${res[t].c}/${res[t].m}`;
   });
-  updatePmZone();
-}
-function updatePmZone() {
-  const zone = document.getElementById('pm-pf-zone');
-  const label = document.getElementById('pm-zone-label');
-  if (!zone || !label) return;
-  const pct = res.pm.m > 0 ? (res.pm.c / res.pm.m) : 1;
-  if (pct > 0.25) { zone.style.display='none'; return; }
-  zone.style.display='block';
-  if (res.pm.c === 0) { label.textContent='ROUGE — Peut forcer avec PF'; label.style.color='var(--danger)'; }
-  else { label.textContent='ORANGE — Réserve faible (-5 PF)'; label.style.color='var(--warning)'; }
 }
 
-/* ══════════════════════════════════════════
-   VÉRIFICATION BIDIRECTIONNELLE
-══════════════════════════════════════════ */
-function checkBidirectional() {
-  const alerts = [];
-  COMPS.forEach(c => {
-    if (c.v === 0 || !c.base) return;
-    c.base.forEach(attrKey => {
-      const attrVal = attrs[attrKey];
-      if (attrVal && c.v >= attrVal * 10) {
-        alerts.push(`📈 ${c.nom} (${c.v}) ≥ ${attrKey.toUpperCase()} (${attrVal}) × 10 → ${attrKey.toUpperCase()} devrait monter à ${attrVal+1} !`);
-      }
-    });
-  });
-  if (alerts.length > 0) {
-    addLog('⚡ Détection bidirectionnelle', alerts.join('\n'), alerts.map(() => ({type:'badge-sys', label:'ATTR ↑'})));
-  }
+function loadPreset(key) {
+  const p = PRESETS[key]; if (!p) return;
+  document.getElementById('pc-nom').value = p.nom;
+  document.getElementById('pc-age').value = p.age;
+  document.getElementById('pc-talent').value = p.talent;
+  attrs = { ...attrs, ...p.attrs };
+  res = JSON.parse(JSON.stringify(p.res));
+  COMPS.forEach(c => { c.v = p.comps[c.nom] || 0; });
+  renderAttrs(); renderComps(currentCat); updateBars();
+  addInfo(`Preset chargé : ${p.nom}`);
 }
 
-/* ══════════════════════════════════════════
-   SYSTEM PROMPT
-══════════════════════════════════════════ */
-function buildSystem() {
-  const attrStr = ATTRS.map(a => `${a.lbl}:${attrs[a.k]}`).join(' ');
-  const compAcq = COMPS.filter(c => c.v > 0).map(c => `${c.nom}(${c.v})`).join(' | ');
-  const compZero = COMPS.filter(c => c.v === 0 && c.magic).map(c => c.nom).join(', ');
-  const pmPct = res.pm.m > 0 ? Math.round(res.pm.c/res.pm.m*100) : 0;
-  const pmZone = res.pm.c === 0 ? 'ROUGE (peut forcer avec PF)' : pmPct <= 25 ? 'ORANGE (-5 PF)' : 'VERTE';
-
-  return `Tu es un moteur de règles JDR en mode TEST MÉCANIQUE PUR — système systémique complet.
-PAS de narration — uniquement analyse mécanique, formules, et conséquences sur la fiche.
-
-PERSONNAGE : ${document.getElementById('pc-nom').value}, ${document.getElementById('pc-age').value}ans, ${document.getElementById('pc-talent').value}
-PV: ${res.pv.c}/${res.pv.m} | PF: ${res.pf.c}/${res.pf.m} | PM: ${res.pm.c}/${res.pm.m} (Zone ${pmZone}) | Chance: ${res.chance}
-Attributs: ${attrStr}
-Compétences acquises: ${compAcq || 'aucune'}
-Maîtrises à 0 (aucun sort possible): ${compZero}
-
-═══════════════════════════════
-SYSTÈME SYSTÉMIQUE COMPLET — RÈGLES EXACTES
-═══════════════════════════════
-
-1. PROGRESSION COMPÉTENCES
-Physique/Mental/Social : Multiplicateur = (11 - AttributMoyen) ÷ 2
-  → Attribut bas = progresse VITE | Attribut haut = progresse LENTEMENT
-  Exemple : Persuasion (Cha4+Int5)÷2=4.5 → mult=(11-4.5)÷2=×3.25 (progresse vite)
-
-Magie UNIQUEMENT : Multiplicateur = (Intelligence + Affinité élément) ÷ 2 ÷ 2
-  → Affinité haute + Intelligence haute = progresse VITE
-  Exemple : Maîtrise Ombre (Int9+Aff9)÷2=9 → mult=9÷2=×4.5 (très vite)
-  Exemple : Maîtrise Ombre (Int5+Aff0)÷2=2.5 → mult=2.5÷2=×1.25 (très lentement)
-
-2. BIDIRECTIONNEL — COMP → ATTRIBUT
-Si Compétence ≥ AttributLié × 10 → AttributLié +1
-  Exemple : Combat Épée 60 avec Agilité 6 → Agilité monte à 7 !
-  Exemple : Persuasion 30 avec Charisme 3 → Charisme monte à 4 !
-  Pour la magie : Maîtrise ≥ Affinité × 15 ET sorts challengeants → Affinité +1
-
-3. MAGIE ↔ PHYSIQUE (système PM → PF)
-PM > 25% : Zone VERTE — normal
-PM ≤ 25% : Zone ORANGE — -5 PF fatigue mentale
-PM = 0   : Zone ROUGE — -20 PF, malus -10% mental, PEUT FORCER avec PF
-Forcer : Coût PF = Coût sort (si PM=0) ou Coût sort - PM restants
-Mage-Guerrier (PM60 + PF600) lance PLUS de sorts qu'un Mage Pur (PM90 + PF50) !
-
-4. AFFINITÉ MAGIQUE — RÈGLE ABSOLUE
-Affinité 0 = AUCUN sort possible, même dans un lieu magique
-Affinité 1-2 = Effets minimes non contrôlés
-Affinité 3-4 = Sorts mineurs stables
-Affinité 5-6 = Sorts de base utilitaires et offensifs
-Affinité 7-8 = Mage compétent, sorts puissants
-Affinité 9-10 = Maître absolu de l'élément
-
-5. FUSIONS ÉLÉMENTAIRES
-Débloquées quand Maîtrise éléments ≥ seuils :
-  Lave = Feu≥20 + Terre≥20 | Foudre = Feu≥25 + Vent≥25 | Glace = Eau≥20 + Vent≥20
-Pratiquer une fusion améliore les éléments de base (+15% bonus rétroactifs)
-
-6. PALIERS FATIGUE (PF)
-75-100% : Aucun malus | 50-74% : -10% efficacité | 25-49% : -25%
-1-24% : -50%, actions limitées | 0% : Évanouissement
-
-7. RÉFÉRENTIEL NARRATIF
-Compétences : 0=jamais pratiqué | 20=apprenti | 40=soldat | 60=expert | 80=maître | 100=dieu
-Attributs : 5=humain ordinaire | 7=au-dessus moyenne | 9=exceptionnel | 10=max humain
-Sorts dégâts : maîtrise 30→32dégâts | 50→316 | 70→3162 | 90→31623
-
-FORMAT RÉPONSE STRICT :
-1. ANALYSE: [formules appliquées, valeurs calculées]
-2. RÉSULTAT: [ce qui se passe mécaniquement]
-3. SIGNAUX: [codes à appliquer sur la fiche]
-
-SIGNAUX DISPONIBLES :
-HP:-X/HP:+X | PF:-X/PF:+X | PM:-X/PM:+X | PROG:Nom:+X
-ETAT:nom | CHANCE:+X | ATTR_UP:attribut (attribut monte de +1)
-PM_FORCE:X (X PM forcés → X PF dépensés) | FUSION_UNLOCK:nom
-
-Réponds en français, factuel, court.`;
-}
-
-/* ══════════════════════════════════════════
-   SEND ACTION
-══════════════════════════════════════════ */
-async function sendAction() {
-  if (!apiKey) { alert('Clé API manquante !'); return; }
-  const input = document.getElementById('act-inp');
-  const action = input.value.trim(); if (!action) return;
-  input.value = '';
-  document.getElementById('send-btn').disabled = true;
-
-  const dieMode = document.getElementById('die-sel').value;
-  const de20 = dieMode === 'auto' ? Math.floor(Math.random()*20)+1 : parseInt(dieMode);
-  const fullAction = `${action} [DÉ D20: ${de20}${de20===20?' CRITIQUE':de20===1?' FUMBLE':''}]`;
-
+function addInfo(msg) {
   const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  const time = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  entry.innerHTML = `
-    <div class="log-hdr">
-      <span class="log-action-txt">▶ ${esc(action)}</span>
-      <span class="log-meta">[d${de20}] ${time}</span>
-    </div>
-    <div class="log-loading"><span class="dots"><span>.</span><span>.</span><span>.</span></span> Calcul mécanique...</div>`;
+  entry.style.cssText = 'color:var(--hint);font-family:JetBrains Mono,monospace;font-size:10px;text-align:center;padding:6px;';
+  entry.textContent = '— ' + msg + ' —';
   document.getElementById('test-log').appendChild(entry);
-  document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
-
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,system:buildSystem(),messages:[{role:'user',content:fullAction}]})
-    });
-    const d = await r.json();
-    const text = d.content?.find(b=>b.type==='text')?.text || '';
-    const changes = parseSignals(text);
-    const loading = entry.querySelector('.log-loading');
-    loading.outerHTML = `<div class="log-body">${esc(cleanText(text))}</div>`;
-    if (changes.length > 0) {
-      const badgesHtml = changes.map(c=>`<span class="badge ${c.type}">${c.label}</span>`).join('');
-      entry.innerHTML += `<div class="log-changes">${badgesHtml}</div>`;
-    }
-    document.getElementById('test-log').scrollTop = document.getElementById('test-log').scrollHeight;
-  } catch(e) {
-    entry.querySelector('.log-loading').textContent = '✗ Erreur: '+e.message;
-  }
-  document.getElementById('send-btn').disabled = false;
-  document.getElementById('act-inp').focus();
 }
 
-function cleanText(text) {
-  return text
-    .replace(/HP:[+-]\d+/gi,'').replace(/PF:[+-]\d+/gi,'').replace(/PM:[+-]\d+/gi,'')
-    .replace(/PROG:[^:\n]+:[+-][0-9.]+/gi,'').replace(/ETAT:\w+/gi,'').replace(/CHANCE:\+\d+/gi,'')
-    .replace(/ATTR_UP:\w+/gi,'').replace(/PM_FORCE:\d+/gi,'').replace(/FUSION_UNLOCK:\S+/gi,'')
-    .trim();
+function clearLog() {
+  document.getElementById('test-log').innerHTML = '<div style="color:var(--hint);font-family:JetBrains Mono,monospace;font-size:11px;text-align:center;padding:40px;">Log effacé.</div>';
 }
 
-function parseSignals(text) {
-  const changes = [];
-
-  text.replace(/HP:([+-]\d+)/gi,(_,d)=>{
-    const v=parseInt(d); res.pv.c=Math.max(0,Math.min(res.pv.m,res.pv.c+v));
-    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PV${v>0?'+':''}${v}→${res.pv.c}`});
-  });
-  text.replace(/PF:([+-]\d+)/gi,(_,d)=>{
-    const v=parseInt(d); res.pf.c=Math.max(0,Math.min(res.pf.m,res.pf.c+v));
-    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PF${v>0?'+':''}${v}→${res.pf.c}`});
-  });
-  text.replace(/PM:([+-]\d+)/gi,(_,d)=>{
-    const v=parseInt(d); res.pm.c=Math.max(0,Math.min(res.pm.m,res.pm.c+v));
-    updateAllBars(); changes.push({type:v>0?'badge-up':'badge-dn',label:`PM${v>0?'+':''}${v}→${res.pm.c}`});
-  });
-  text.replace(/PM_FORCE:(\d+)/gi,(_,v)=>{
-    const pf=parseInt(v); res.pf.c=Math.max(0,res.pf.c-pf);
-    updateAllBars(); changes.push({type:'badge-sys',label:`FORCE ${pf}PM→${pf}PF`});
-  });
-  text.replace(/PROG:([^:\n]+):\+([0-9.]+)/gi,(_,nom,gain)=>{
-    const g=parseFloat(gain); const c=COMPS.find(x=>x.nom.toLowerCase()===nom.trim().toLowerCase());
-    if(c){ const old=c.v; c.v=Math.min(100,Math.round((c.v+g)*10)/10); renderComps(currentCat);
-      changes.push({type:'badge-new',label:`${nom.trim()} ${old}→${c.v}`});
-      const row=document.getElementById('cr-'+esc(nom.trim()));
-      if(row){row.classList.add('changed');setTimeout(()=>row.classList.remove('changed'),3000);}
-      checkBidirectional();
-    }
-  });
-  text.replace(/ATTR_UP:(\w+)/gi,(_,attrKey)=>{
-    if(attrs.hasOwnProperty(attrKey)){
-      const old=attrs[attrKey]; attrs[attrKey]=Math.min(10,attrs[attrKey]+1);
-      const el=document.querySelector(`#ac-${attrKey} .attr-val`);
-      if(el){el.textContent=attrs[attrKey]; document.getElementById('ac-'+attrKey).classList.add('changed'); setTimeout(()=>document.getElementById('ac-'+attrKey).classList.remove('changed'),600);}
-      changes.push({type:'badge-sys',label:`${attrKey.toUpperCase()} ${old}→${attrs[attrKey]} ↑`});
-    }
-  });
-  text.replace(/FUSION_UNLOCK:(\S+)/gi,(_,nom)=>{
-    const c=COMPS.find(x=>x.nom.toLowerCase().includes(nom.toLowerCase()));
-    if(c&&c.v===0){c.v=5; renderComps(currentCat);}
-    changes.push({type:'badge-sys',label:`FUSION: ${nom} débloquée !`});
-  });
-  text.replace(/ETAT:(\w+)/gi,(_,e)=>{ changes.push({type:'badge-warn',label:`État: ${e}`}); });
-  text.replace(/CHANCE:\+(\d+)/gi,(_,v)=>{
-    res.chance=Math.min(100,res.chance+parseInt(v));
-    document.getElementById('bar-ch').style.width=res.chance+'%';
-    document.getElementById('ch-v').value=res.chance;
-    changes.push({type:'badge-up',label:`Chance+${v}→${res.chance}`});
-  });
-  return changes;
-}
-
-function addLog(action, body, changes) {
-  const entry=document.createElement('div'); entry.className='log-entry';
-  const badgesHtml=changes.map(c=>`<span class="badge ${c.type}">${c.label}</span>`).join('');
-  entry.innerHTML=`<div class="log-hdr"><span class="log-action-txt">${esc(action)}</span></div>
-    ${body?`<div class="log-body">${esc(body)}</div>`:''}
-    ${changes.length?`<div class="log-changes">${badgesHtml}</div>`:''}`;
-  document.getElementById('test-log').appendChild(entry);
-  document.getElementById('test-log').scrollTop=document.getElementById('test-log').scrollHeight;
-}
-
-function clearLog() { document.getElementById('test-log').innerHTML='<div style="color:var(--hint);font-family:\'JetBrains Mono\',monospace;font-size:11px;text-align:center;padding:40px;">Log effacé.</div>'; }
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>
