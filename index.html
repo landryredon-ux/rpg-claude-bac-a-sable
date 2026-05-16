@@ -311,11 +311,11 @@ const ATTRS_DEF = [
   {k:'volonte',     lbl:'VOL', v:7,  type:'mental'},
   {k:'charisme',    lbl:'CHA', v:4,  type:'mental'},
   {k:'mana',        lbl:'MAN', v:8,  type:'magic'},
-  {k:'aff_feu',     lbl:'FEU', v:0,  type:'magic'},
-  {k:'aff_eau',     lbl:'EAU', v:0,  type:'magic'},
-  {k:'aff_terre',   lbl:'TER', v:0,  type:'magic'},
-  {k:'aff_vent',    lbl:'VEN', v:0,  type:'magic'},
-  {k:'aff_lumiere', lbl:'LUM', v:0,  type:'magic'},
+  {k:'aff_feu',     lbl:'FEU', v:2,  type:'magic'},
+  {k:'aff_eau',     lbl:'EAU', v:1,  type:'magic'},
+  {k:'aff_terre',   lbl:'TER', v:1,  type:'magic'},
+  {k:'aff_vent',    lbl:'VEN', v:2,  type:'magic'},
+  {k:'aff_lumiere', lbl:'LUM', v:1,  type:'magic'},
   {k:'aff_ombre',   lbl:'OMB', v:9,  type:'magic'},
 ];
 
@@ -393,25 +393,25 @@ const COMPS = [
 const PRESETS = {
   ladix: {
     nom:'Ladix', age:17, talent:'2.5',
-    attrs:{force:4,endurance:5,agilite:7,dexterite:7,sante:5,perception:8,intelligence:9,volonte:7,charisme:4,mana:8,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:9},
+    attrs:{force:4,endurance:5,agilite:7,dexterite:7,sante:5,perception:8,intelligence:9,volonte:7,charisme:4,mana:8,aff_feu:2,aff_eau:1,aff_terre:1,aff_vent:2,aff_lumiere:1,aff_ombre:9},
     res:{pv:{c:750,m:750},pf:{c:600,m:600},pm:{c:80,m:80}},
     comps:{Tromperie:8,Vigilance:15,Observation:12,Course:15,Marche:43,Sprint:8,'Combat Dague':5,'Combat Mains Nues':8,Esquive:12,Perception:8,'Résistance Douleur':5,'Résistance Fatigue':5,'Maîtrise Magie':5,'Langue Maternelle':85,Histoire:4,Mathématiques:4,Cuisine:5,Persuasion:3,Intimidation:5,Marchandage:2}
   },
   guerrier: {
     nom:'Kael', age:30, talent:'1.0',
-    attrs:{force:8,endurance:8,agilite:7,dexterite:6,sante:7,perception:5,intelligence:4,volonte:7,charisme:5,mana:2,aff_feu:0,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:0},
+    attrs:{force:8,endurance:8,agilite:7,dexterite:6,sante:7,perception:5,intelligence:4,volonte:7,charisme:5,mana:2,aff_feu:1,aff_eau:1,aff_terre:2,aff_vent:1,aff_lumiere:1,aff_ombre:1},
     res:{pv:{c:850,m:850},pf:{c:800,m:800},pm:{c:20,m:20}},
     comps:{'Combat Épée Longue':65,Esquive:50,'Parade Arme':45,'Résistance Physique':70,'Endurance Combat':75,'Résistance Fatigue':80,Course:40,Marche:60}
   },
   mage: {
     nom:'Élysia', age:25, talent:'1.5',
-    attrs:{force:3,endurance:3,agilite:4,dexterite:5,sante:3,perception:7,intelligence:9,volonte:7,charisme:4,mana:9,aff_feu:8,aff_eau:0,aff_terre:0,aff_vent:3,aff_lumiere:0,aff_ombre:0},
+    attrs:{force:3,endurance:3,agilite:4,dexterite:5,sante:3,perception:7,intelligence:9,volonte:7,charisme:4,mana:9,aff_feu:8,aff_eau:1,aff_terre:1,aff_vent:3,aff_lumiere:1,aff_ombre:1},
     res:{pv:{c:320,m:320},pf:{c:50,m:50},pm:{c:90,m:90}},
     comps:{'Maîtrise Magie':60,'Maîtrise Feu':70,'Maîtrise Vent':25,'Langue Maternelle':85,Histoire:20,'Détection Magie':35}
   },
   mage_guerrier: {
     nom:'Draven', age:28, talent:'1.5',
-    attrs:{force:6,endurance:8,agilite:6,dexterite:6,sante:6,perception:6,intelligence:7,volonte:6,charisme:5,mana:6,aff_feu:5,aff_eau:0,aff_terre:0,aff_vent:0,aff_lumiere:0,aff_ombre:3},
+    attrs:{force:6,endurance:8,agilite:6,dexterite:6,sante:6,perception:6,intelligence:7,volonte:6,charisme:5,mana:6,aff_feu:5,aff_eau:1,aff_terre:2,aff_vent:1,aff_lumiere:1,aff_ombre:3},
     res:{pv:{c:650,m:650},pf:{c:600,m:600},pm:{c:60,m:60}},
     comps:{'Combat Épée Longue':45,'Maîtrise Feu':40,'Résistance Fatigue':85,'Endurance Combat':60,Esquive:35}
   }
@@ -646,6 +646,7 @@ async function sendAction() {
       }
 
       const comp = item.comp;
+
       const diff = getDifficulte(comp.v);
       const multAttr = getMultiplicateur(comp);
       const situMult = getSituationMult();
